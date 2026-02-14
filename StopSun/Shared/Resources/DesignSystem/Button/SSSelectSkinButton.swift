@@ -34,7 +34,7 @@ struct SSSelectSkinButton: View {
                 textContent
                 Spacer()
             }
-            .padding(16)
+            .padding(20)
             .background(isSelected ? Color.white00 : Color.white01)
             .cornerRadius(12)
             .overlay(selectionBorder)
@@ -62,13 +62,12 @@ struct SSSelectSkinButton: View {
                 .font(.ssFont(.R2))
                 .foregroundStyle(Color.text01)
                 .multilineTextAlignment(.leading)
-                .lineSpacing(2)
         }
     }
     
     private var selectionBorder: some View {
         RoundedRectangle(cornerRadius: 12)
-            .stroke(
+            .strokeBorder(
                 isSelected ? Color.key00 : Color.clear,
                 lineWidth: 1.5
             )

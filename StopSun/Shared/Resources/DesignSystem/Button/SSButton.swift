@@ -15,6 +15,7 @@ struct SSButton: View {
         case primary
         case secondary
         case ghost
+        case notAllowed
     }
     
     private let title: String
@@ -52,6 +53,10 @@ struct SSButton: View {
         case .ghost:
             Button(action: action) { Text(title) }
                 .buttonStyle(.ssGhost)
+        case .notAllowed:
+            Button(action: action) { Text(title) }
+                .buttonStyle(.ssNotAllowed)
+            
         }
     }
 }

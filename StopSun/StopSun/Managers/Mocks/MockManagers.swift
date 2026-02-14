@@ -205,6 +205,11 @@ final class MockNotificationManager: NotificationManagerProtocol {
 // MARK: - MockWatchConnectivityManager
 
 final class MockWatchConnectivityManager: WatchConnectivityManagerProtocol {
+    
+    /// Preview용 페어링 시뮬레이션 (기본: true)
+    var _isPaired: Bool = true
+    
+    var isPaired: Bool { _isPaired }
     var isReachable: Bool { false }
     
     func activate() {}

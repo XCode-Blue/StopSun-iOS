@@ -77,6 +77,32 @@ struct SSGhostButtonStyle: ButtonStyle {
     }
 }
 
+// MARK: - Not Allowed Button Style
+
+struct SSNotAllowedButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+    
+    var foregroundColor: Color = .text04
+    var backgroundColor: Color = .pointBlue00
+    var disabledForegroundColor: Color = .white00
+    var disabledBackgroundColor: Color = .gray00
+    var cornerRadius: CGFloat = 8
+    var verticalPadding: CGFloat = 14
+    var font: Font = .ssFont(.SB2)
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(font)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, verticalPadding)
+            .foregroundStyle(isEnabled ? foregroundColor : disabledForegroundColor)
+            .background(isEnabled ? backgroundColor : disabledBackgroundColor)
+            .cornerRadius(cornerRadius)
+            .opacity(configuration.isPressed ? 0.8 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
+
 // MARK: - Static Accessors
 
 extension ButtonStyle where Self == SSPrimaryButtonStyle {
@@ -89,6 +115,10 @@ extension ButtonStyle where Self == SSSecondaryButtonStyle {
 
 extension ButtonStyle where Self == SSGhostButtonStyle {
     static var ssGhost: SSGhostButtonStyle { SSGhostButtonStyle() }
+}
+
+extension ButtonStyle where Self == SSNotAllowedButtonStyle {
+    static var ssNotAllowed: SSNotAllowedButtonStyle { SSNotAllowedButtonStyle() }
 }
 
 // MARK: - Style Customization

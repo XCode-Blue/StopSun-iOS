@@ -8,17 +8,39 @@
 import SwiftUI
 
 struct ContentView: View {
+    
+    @State private var showSplash = true
+    
+    @State private var isOnboardingCompleted =
+        UserProfileManager.shared.fetchOnboardingCompleted()
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        ZStack {
+            
+            if showSplash {
+                SplashView()
+                    .transition(.opacity)
+            } else {
+                if isOnboardingCompleted {
+                    DashboardView()
+                } else {
+                    OnboardingContainerView()
+                }
+            }
         }
-        .padding()
+        .task {
+            try? await Task.sleep(for: .seconds(1.5))
+            withAnimation(.easeInOut(duration: 0.4)) {
+                showSplash = false
+            }
+        }
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: UserProfileManager.userProfileDidChangeNotification
+            )
+        ) { _ in
+            isOnboardingCompleted =
+                UserProfileManager.shared.fetchOnboardingCompleted()
+        }
     }
-}
-
-#Preview {
-    ContentView()
 }
