@@ -51,6 +51,7 @@ final class MockWeatherManager: WeatherManagerProtocol {
 
 final class MockLocationManager: LocationManagerProtocol {
     var isAuthorized: Bool { true }
+    var isDenied: Bool { false }
     
     func requestAuthorization() async {}
     
@@ -67,8 +68,11 @@ final class MockLocationManager: LocationManagerProtocol {
 final class MockLocalStorageManager: LocalStorageManagerProtocol {
     
     private var userProfile: UserProfile? = .mockUser
+    private var activeSunscreen: SunscreenApplication?
     private var sunscreenHistory: [SunscreenApplication] = []
     private var locationHistory: [LocationRecord] = []
+    private var onboardingCompleted: Bool = false
+    private var firstLaunchChecked: Bool = false
     
     // MARK: - UserProfile
 
@@ -82,13 +86,40 @@ final class MockLocalStorageManager: LocalStorageManagerProtocol {
         userProfile?.spfLevel = spfLevel
     }
     func deleteUserProfile() { userProfile = nil }
-    func saveOnboardingCompleted(_ isCompleted: Bool) {}
-    func loadOnboardingCompleted() -> Bool { true }
-    func checkIsFirstLaunch() -> Bool { false }
+    func hasUserProfile() -> Bool { userProfile != nil }
     
+    // MARK: - Onboarding
     
-    // MARK: - SunscreenApplication
-
+    func saveOnboardingCompleted(_ isCompleted: Bool) {
+        onboardingCompleted = isCompleted
+    }
+    func loadOnboardingCompleted() -> Bool { onboardingCompleted }
+    func checkIsFirstLaunch() -> Bool {
+        guard !firstLaunchChecked else { return false }
+        firstLaunchChecked = true
+        return true
+    }
+    
+    // MARK: - Active Sunscreen
+    
+    func saveActiveSunscreen(_ sunscreen: SunscreenApplication) {
+        activeSunscreen = sunscreen
+    }
+    func loadActiveSunscreen() -> SunscreenApplication? { activeSunscreen }
+    func loadActiveValidSunscreen() -> SunscreenApplication? {
+        guard let s = activeSunscreen, s.isActive(at: Date()) else { return nil }
+        return s
+    }
+    func deleteActiveSunscreen() { activeSunscreen = nil }
+    func hasActiveSunscreen() -> Bool { activeSunscreen != nil }
+    func fetchRemainingMinutes() -> Int {
+        guard let s = activeSunscreen else { return 0 }
+        let remaining = s.nextReapplyTime.timeIntervalSince(Date())
+        return remaining > 0 ? Int(remaining / 60) : 0
+    }
+    
+    // MARK: - Sunscreen History
+    
     func loadSunscreenHistory() -> [SunscreenApplication] { sunscreenHistory }
     func loadCurrentSunscreen() -> SunscreenApplication? { sunscreenHistory.last }
     func saveSunscreenApplication(_ application: SunscreenApplication) {
@@ -137,16 +168,12 @@ final class MockLocalStorageManager: LocalStorageManagerProtocol {
 
 final class MockNotificationManager: NotificationManagerProtocol {
     
-    // MARK: - Mock State
-    
     var _isAuthorized: Bool = true
     var _authorizationStatus: UNAuthorizationStatus = .authorized
     var scheduledReminders: [Date] = []
     var sentMEDWarnings: [Double] = []
     var shouldFailAuthorization: Bool = false
     var shouldFailSchedule: Bool = false
-    
-    // MARK: - Protocol
     
     var isAuthorized: Bool { _isAuthorized }
     
@@ -197,23 +224,32 @@ final class MockNotificationManager: NotificationManagerProtocol {
         return []
     }
     
-    func refreshAuthorizationStatus() async {
-        // Mock
-    }
+    func refreshAuthorizationStatus() async {}
 }
 
 // MARK: - MockWatchConnectivityManager
 
 final class MockWatchConnectivityManager: WatchConnectivityManagerProtocol {
     
-    /// Preview용 페어링 시뮬레이션 (기본: true)
     var _isPaired: Bool = true
     
     var isPaired: Bool { _isPaired }
     var isReachable: Bool { false }
-    
+
+    var onMessageReceived: (([String: Any]) -> Void)?
+    var onUserInfoReceived: (([String: Any]) -> Void)?
+
     func activate() {}
     func sendUserProfile(_ profile: UserProfile) {}
     func sendSunscreenApplication(_ application: SunscreenApplication) {}
     func sendMEDStatus(totalSED: Double, maxMED: Double) {}
+
+    func sendMessage(
+        _ message: [String: Any],
+        replyHandler: (([String: Any]) -> Void)?,
+        errorHandler: ((Error) -> Void)?
+    ) {}
+
+    func transferUserInfo(_ userInfo: [String: Any]) {}
+    func updateApplicationContext(_ context: [String: Any]) throws {}
 }

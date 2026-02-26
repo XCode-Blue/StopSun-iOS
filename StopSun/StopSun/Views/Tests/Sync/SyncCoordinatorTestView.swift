@@ -86,7 +86,7 @@ private extension SyncCoordinatorTestView {
                 VStack(alignment: .leading) {
                     Text(coordinator.warningLevel.title)
                         .font(.headline)
-                    Text(coordinator.warningLevel.description)
+                    Text(coordinator.warningLevel.statusDescription)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

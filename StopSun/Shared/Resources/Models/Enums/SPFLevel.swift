@@ -1,6 +1,6 @@
 //
 //  SPFLevel.swift
-//  TarTanning
+//  StopSun
 //
 //  Created by J on 7/22/25.
 //
@@ -20,29 +20,56 @@ import Foundation
 /// - Important: 선크림 효과는 도포 후 2시간까지만 유효합니다.
 enum SPFLevel: Int, CaseIterable, Identifiable, Codable {
     
-    /// 선크림 미사용
+    /// 선크림 미사용 (protectionFactor = 1.0)
     case none = 1
     
-    /// SPF 15 - 약한 차단 (93%)
+    /// SPF 10
+    case spf10 = 10
+    
+    /// SPF 15
     case spf15 = 15
     
-    /// SPF 30 - 보통 차단 (97%)
+    /// SPF 20
+    case spf20 = 20
+    
+    /// SPF 25
+    case spf25 = 25
+    
+    /// SPF 30
     case spf30 = 30
     
-    /// SPF 50+ - 강한 차단 (98%)
+    /// SPF 35
+    case spf35 = 35
+    
+    /// SPF 40
+    case spf40 = 40
+    
+    /// SPF 45
+    case spf45 = 45
+    
+    /// SPF 50
     case spf50 = 50
     
+    /// SPF 50+ (대표값 55)
+    case spf50Plus = 55
+    
     var id: Int { rawValue }
+    
+    // MARK: - Picker Cases
+    
+    /// 설정 Picker에 표시할 케이스 (none 제외)
+    static var pickerCases: [SPFLevel] {
+        allCases.filter { $0 != .none }
+    }
 
     // MARK: - Display
     
-    /// 화면 표시용 이름
+    /// 화면 표시용 이름 (Localized)
     var displayTitle: String {
         switch self {
-        case .none: return "미사용"
-        case .spf15: return "SPF 15"
-        case .spf30: return "SPF 30"
-        case .spf50: return "SPF 50+"
+        case .none: return L10n.SPF.none
+        case .spf50Plus: return L10n.SPF.fiftyPlus
+        default: return L10n.SPF.level(rawValue)
         }
     }
     
@@ -56,22 +83,18 @@ enum SPFLevel: Int, CaseIterable, Identifiable, Codable {
     }
     
     /// UV 차단율 (%)
+    ///
+    /// 공식: (1 - 1/SPF) × 100
     var uvBlockingPercentage: Double {
-        switch self {
-        case .none: 0.0
-        case .spf15: 93.3
-        case .spf30: 96.7
-        case .spf50: 98.0
-        }
+        guard self != .none else { return 0.0 }
+        return (1.0 - 1.0 / Double(rawValue)) * 100.0
     }
     
     /// 권장 재도포 시간 (분)
     var recommendedReapplicationMinutes: Int {
         switch self {
-        case .none: 0
-        case .spf15: 90
-        case .spf30: 120
-        case .spf50: 120
+        case .none: return 0
+        default: return 120
         }
     }
 }

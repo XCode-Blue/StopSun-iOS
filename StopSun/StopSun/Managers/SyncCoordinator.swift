@@ -156,6 +156,23 @@ final class SyncCoordinator: ObservableObject, SyncCoordinatorProtocol {
         observerTasks.append(pushApplyTask)
         
         Log.debug("Observer 설정 완료: \(observerTasks.count)개")
+
+        // 5. Watch Connectivity 콜백 설정
+        setupWatchConnectivity()
+    }
+
+    // MARK: - Watch Connectivity
+
+    private func setupWatchConnectivity() {
+        watchConnectivity.onMessageReceived = { [weak self] message in
+            self?.handleWatchMessage(message)
+        }
+
+        watchConnectivity.onUserInfoReceived = { [weak self] userInfo in
+            self?.handleUserInfoFromWatch(userInfo)
+        }
+
+        Log.debug("Watch Connectivity 콜백 설정 완료")
     }
     
     // MARK: - Sync
@@ -175,7 +192,10 @@ final class SyncCoordinator: ObservableObject, SyncCoordinatorProtocol {
         }
         
         Log.info("동기화 시작")
-        
+
+        // 0. Watch Connectivity 세션 활성화
+        watchConnectivity.activate()
+
         // 1. 프로필 로드
         loadUserProfile()
         
@@ -246,7 +266,10 @@ final class SyncCoordinator: ObservableObject, SyncCoordinatorProtocol {
         
         // 4. 경고 레벨 체크 및 알림
         checkWarningLevelAndNotify()
-        
+
+        // 5. Watch에 최신 상태 동기화
+        sendDashboardToWatch()
+
         Log.info("새로고침 완료")
     }
     
@@ -275,7 +298,8 @@ final class SyncCoordinator: ObservableObject, SyncCoordinatorProtocol {
         
         // 3. Watch에 상태 전송
         watchConnectivity.sendSunscreenApplication(application)
-        
+        sendDashboardToWatch()
+
         // 4. TODO: Live Activity 시작
         
         Log.info("선크림 도포: SPF \(spf.rawValue), 재도포 알림: \(reapplyTime.formatted(date: .omitted, time: .shortened))")
@@ -587,9 +611,69 @@ private extension SyncCoordinator {
     /// 푸시 알림에서 "바르기" 버튼 탭
     func handlePushNotificationApply() async {
         Log.debug("푸시 알림에서 선크림 바르기 탭")
-        
+
         // 사용자 설정된 SPF로 도포
         let spf = userProfile?.spfLevel ?? .spf30
         applySunscreen(spf: spf)
+    }
+
+    // MARK: - Watch Communication
+
+    /// Watch에서 수신한 즉시 메시지 처리
+    func handleWatchMessage(_ message: [String: Any]) {
+        Log.debug("Watch 메시지 수신: \(message[WatchMessageKey.type] as? String ?? "unknown")")
+
+        if message[WatchMessageKey.requestDashboardSync] as? Bool == true {
+            sendDashboardToWatch()
+        }
+    }
+
+    /// Watch에서 수신한 백그라운드 UserInfo 처리
+    func handleUserInfoFromWatch(_ userInfo: [String: Any]) {
+        Log.debug("Watch UserInfo 수신: \(userInfo[WatchMessageKey.type] as? String ?? "unknown")")
+
+        // 향후 Watch → iPhone 백그라운드 데이터 처리
+        // 예: 운동 데이터, Watch에서 선크림 도포 확인 등
+    }
+
+    /// Watch에 대시보드 데이터 전송 및 Application Context 업데이트
+    func sendDashboardToWatch() {
+        var data: [String: Any] = [
+            WatchMessageKey.type: WatchMessageKey.TypeValue.dashboardData,
+            WatchMessageKey.uvIndex: currentUVIndex,
+            WatchMessageKey.totalSED: todayTotalSED,
+            WatchMessageKey.warningLevel: warningLevel.rawValue,
+            WatchMessageKey.timestamp: Date().timeIntervalSince1970
+        ]
+
+        if let weather = currentWeather {
+            data[WatchMessageKey.cityName] = weather.location.cityName
+            data[WatchMessageKey.temperature] = weather.currentTemperature
+        }
+
+        if let skinType = userProfile?.skinType {
+            data[WatchMessageKey.maxSED] = SEDCalculator.maxSED(for: skinType)
+        }
+
+        if let sunscreen = activeSunscreen {
+            data[WatchMessageKey.sunscreenSPF] = sunscreen.spfLevel.rawValue
+            data[WatchMessageKey.sunscreenAppliedAt] = sunscreen.appliedAt.timeIntervalSince1970
+        }
+
+        // 1. Application Context 업데이트 (보장된 전달 — 먼저 실행)
+        do {
+            try watchConnectivity.updateApplicationContext(data)
+        } catch {
+            Log.error("Application Context 업데이트 실패: \(error.localizedDescription)")
+        }
+
+        // 2. 즉시 메시지 전송 (Watch가 실행 중일 때 — 실패 가능)
+        watchConnectivity.sendMessage(data, replyHandler: { reply in
+            Log.debug("Watch 대시보드 응답: \(reply)")
+        }, errorHandler: { _ in
+            Log.debug("Watch 즉시 전송 불가 - Application Context로 대체됨")
+        })
+
+        Log.info("Watch 대시보드 데이터 전송")
     }
 }

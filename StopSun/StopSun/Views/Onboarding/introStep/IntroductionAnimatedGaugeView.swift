@@ -11,8 +11,8 @@ import Combine
 /// 온보딩 전용 MED 게이지 애니메이션 뷰
 struct IntroductionAnimatedGaugeView: View {
     
-    @State private var currentLevel: MEDLevel = .safe
-    @State private var animatedPercentage: Double = MEDLevel.safe.percentage
+    @State private var currentLevel: WarningLevel = .safe
+    @State private var animatedPercentage: Double = WarningLevel.safe.demoPercentage
     
     /// .common RunLoop → TabView 스와이프 중에도 타이머 동작 보장
     private let timerPublisher = Timer.publish(every: 1.5, on: .main, in: .common).autoconnect()
@@ -29,7 +29,7 @@ struct IntroductionAnimatedGaugeView: View {
             // 상태 텍스트 영역 (레이아웃 고정)
             VStack(spacing: 12) {
                 
-                Text(currentLevel.statusTitle)
+                Text(currentLevel.title)
                     .font(.ssFont(.B1))
                     .foregroundStyle(currentLevel.color)
                     .animation(.easeInOut(duration: 0.4), value: currentLevel)
@@ -46,13 +46,13 @@ struct IntroductionAnimatedGaugeView: View {
         }
         .onAppear {
             currentLevel = .safe
-            animatedPercentage = MEDLevel.safe.percentage
+            animatedPercentage = WarningLevel.safe.demoPercentage
         }
         .onReceive(timerPublisher) { _ in
             let nextLevel = currentLevel.next
             withAnimation(.easeInOut(duration: 0.5)) {
                 currentLevel = nextLevel
-                animatedPercentage = nextLevel.percentage
+                animatedPercentage = nextLevel.demoPercentage
             }
         }
     }

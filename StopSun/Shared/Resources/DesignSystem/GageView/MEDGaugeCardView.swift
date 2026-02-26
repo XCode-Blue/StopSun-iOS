@@ -63,7 +63,7 @@ struct MEDGaugeCardView: View {
             .padding(.horizontal, 24)
             
             VStack(spacing: 6) {
-                Text(level.statusTitle)
+                Text(level.title)
                     .font(.ssFont(.R3))
                 
                 Text(level.statusDescription)
@@ -78,8 +78,8 @@ struct MEDGaugeCardView: View {
         )
     }
     
-    private var level: MEDLevel {
-        MEDLevel.fromPercentage(percentage)
+    private var level: WarningLevel {
+        WarningLevel.fromPercentage(percentage)
     }
 }
 

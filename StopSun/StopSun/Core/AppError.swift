@@ -165,7 +165,8 @@ extension AppError {
     /// 설정 앱으로 이동 필요 여부
     var requiresSettings: Bool {
         switch self {
-        case .location(.authorizationDenied),
+        case .healthKit(.authorizationDenied),
+             .location(.authorizationDenied),
              .location(.servicesDisabled),
              .notification(.authorizationDenied):
             return true

@@ -14,14 +14,10 @@ struct StopSunApp: App {
     
     private let container = DIContainer.shared
     
-    /// 온보딩 완료 여부
-    ///
-    /// `UserProfileManager`의 저장값을 기준으로 판단합니다.
-    @State private var isOnboardingCompleted = UserProfileManager.shared.fetchOnboardingCompleted()
-    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(\.localStorage, container.localStorage)
                 .environment(container.permissionManager)
                 .environmentObject(container.syncCoordinator)
                 .environmentObject(container.errorHandler)
@@ -31,12 +27,9 @@ struct StopSunApp: App {
         }
     }
     
-    // MARK: - Scene Phase
-    
     private func handleScenePhaseChange(_ phase: ScenePhase) {
         switch phase {
         case .active:
-            // 설정 앱에서 변경한 권한 반영
             Task {
                 await container.permissionManager.checkAllStatuses()
             }

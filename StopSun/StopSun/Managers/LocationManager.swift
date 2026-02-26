@@ -6,10 +6,13 @@
 //
 
 import Foundation
+
 /// 위치 관리자
 final class LocationManager: LocationManagerProtocol {
     
     var isAuthorized: Bool { false }
+    
+    var isDenied: Bool { false }
     
     func requestAuthorization() async {
         // TODO: 구현

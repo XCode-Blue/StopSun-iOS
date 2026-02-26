@@ -127,6 +127,12 @@ final class PermissionManager {
     }
     
     private func checkLocationStatus() {
-        locationStatus = location.isAuthorized ? .authorized : .notDetermined
+        if location.isAuthorized {
+            locationStatus = .authorized
+        } else if location.isDenied {
+            locationStatus = .denied
+        } else {
+            locationStatus = .notDetermined
+        }
     }
 }

@@ -10,10 +10,6 @@ import Foundation
 /// 로컬 저장소 관리자
 final class LocalStorageManager: LocalStorageManagerProtocol {
 
-    // MARK: - Notification Names
-
-    static let userProfileDidChangeNotification = Notification.Name("userProfileDidChange")
-
     // MARK: - Properties
 
     private let userDefaults: UserDefaults
@@ -69,7 +65,7 @@ final class LocalStorageManager: LocalStorageManagerProtocol {
             Log.info("UserProfile saved successfully: \(profile)")
 
             NotificationCenter.default.post(
-                name: Self.userProfileDidChangeNotification,
+                name: .userProfileDidChange,
                 object: profile
             )
         } catch {
@@ -96,7 +92,7 @@ final class LocalStorageManager: LocalStorageManagerProtocol {
         Log.info("UserProfile deleted")
 
         NotificationCenter.default.post(
-            name: Self.userProfileDidChangeNotification,
+            name: .userProfileDidChange,
             object: nil
         )
     }

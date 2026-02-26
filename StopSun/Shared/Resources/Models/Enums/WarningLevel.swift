@@ -7,39 +7,42 @@
 
 import SwiftUI
 
-/// SED 진행률 기반 경고 레벨
+/// SED/MED 진행률 기반 경고 레벨
 ///
-/// 일일 권장 자외선 노출량(SED) 대비 현재 진행률에 따른 경고 단계입니다.
+/// 일일 권장 자외선 노출량 대비 현재 진행률에 따른 경고 단계입니다.
 ///
 /// ## 경고 단계
 ///
-/// | 레벨 | 진행률  | 권장 행동 |
-/// |------|--------|----------|
-/// | safe | 0~29% | 정상 활동 |
-/// | caution | 30~49% | 선크림 확인 |
-/// | warning | 50~69% | 그늘 권장 |
-/// | danger | 70%+ | 실내 이동 |
+/// | 레벨 | 진행률 | 퍼센트 | 권장 행동 |
+/// |------|--------|--------|----------|
+/// | safe | 0~0.3 | 0~30% | 정상 활동 |
+/// | caution | 0.3~0.5 | 30~50% | 선크림 확인 |
+/// | warning | 0.5~0.7 | 50~70% | 그늘 권장 |
+/// | danger | 0.7+ | 70%+ | 실내 이동 |
 ///
 /// ## 사용 예시
 ///
 /// ```swift
-/// let progress = SEDCalculator.progress(currentSED: 2.0, skinType: .type3)
-/// let level = WarningLevel.from(progress: progress)
+/// // progress 기반 (0.0 ~ 1.0+)
+/// let level = WarningLevel.from(progress: 0.6)  // .warning
+///
+/// // percentage 기반 (0 ~ 100+)
+/// let level = WarningLevel.fromPercentage(73)    // .danger
 ///
 /// // UI에서 사용
-/// Text(level.title)
+/// Text(level.statusTitle)
 ///     .foregroundStyle(level.color)
 /// ```
 ///
-enum WarningLevel: String, CaseIterable, Sendable {
+enum WarningLevel: String, CaseIterable, Sendable, Equatable {
     
-    /// 0~29%: 안전
+    /// 0~30%: 안전
     case safe
     
-    /// 30~49%: 주의
+    /// 30~50%: 주의
     case caution
     
-    /// 50~69%: 경고
+    /// 50~70%: 경고
     case warning
     
     /// 70%+: 위험
@@ -53,10 +56,10 @@ enum WarningLevel: String, CaseIterable, Sendable {
     /// - Returns: 해당하는 경고 레벨
     ///
     /// ```swift
-    /// WarningLevel.from(progress: 0.3)  // .safe
-    /// WarningLevel.from(progress: 0.6)  // .caution
-    /// WarningLevel.from(progress: 0.85) // .warning
-    /// WarningLevel.from(progress: 1.2)  // .danger
+    /// WarningLevel.from(progress: 0.2)  // .safe
+    /// WarningLevel.from(progress: 0.4)  // .caution
+    /// WarningLevel.from(progress: 0.6)  // .warning
+    /// WarningLevel.from(progress: 0.85) // .danger
     /// ```
     static func from(progress: Double) -> WarningLevel {
         switch progress {
@@ -71,29 +74,48 @@ enum WarningLevel: String, CaseIterable, Sendable {
         }
     }
     
+    /// 퍼센트 값으로부터 경고 레벨 생성
+    ///
+    /// - Parameter percentage: MED 누적 퍼센트 (0 ~ 100+)
+    /// - Returns: 해당하는 경고 레벨
+    ///
+    /// ```swift
+    /// WarningLevel.fromPercentage(10)   // .safe
+    /// WarningLevel.fromPercentage(40)   // .caution
+    /// WarningLevel.fromPercentage(60)   // .warning
+    /// WarningLevel.fromPercentage(85)   // .danger
+    /// ```
+    static func fromPercentage(_ percentage: Double) -> WarningLevel {
+        from(progress: percentage / 100.0)
+    }
+    
     // MARK: - Display Properties
     
-    /// 경고 레벨 제목
+    /// 경고 레벨 제목 (L10n 기반)
     var title: String {
         switch self {
-        case .safe: "안전"
-        case .caution: "주의"
-        case .warning: "경고"
-        case .danger: "위험"
+        case .safe:
+            return L10n.MED.Status.Safe.title
+        case .caution:
+            return L10n.MED.Status.Caution.title
+        case .warning:
+            return L10n.MED.Status.Warning.title
+        case .danger:
+            return L10n.MED.Status.Danger.title
         }
     }
     
-    /// 경고 레벨 설명
-    var description: String {
+    /// 경고 레벨 설명 (L10n 기반)
+    var statusDescription: String {
         switch self {
         case .safe:
-            "자외선 노출량이 안전한 수준입니다."
+            return L10n.MED.Status.Safe.description
         case .caution:
-            "일일 권장량의 절반을 넘었습니다. 선크림을 확인하세요."
+            return L10n.MED.Status.Caution.description
         case .warning:
-            "곧 일일 권장량에 도달합니다. 그늘을 찾는 것이 좋습니다."
+            return L10n.MED.Status.Warning.description
         case .danger:
-            "일일 권장량을 초과했습니다! 실내로 이동하세요."
+            return L10n.MED.Status.Danger.description
         }
     }
     
@@ -103,7 +125,29 @@ enum WarningLevel: String, CaseIterable, Sendable {
         case .safe: .gage00
         case .caution: .gage01
         case .warning: .gage02
-        case .danger: .gage02
+        case .danger: .gage03
+        }
+    }
+    
+    // MARK: - Onboarding Demo
+    
+    /// 각 레벨의 대표 퍼센트 값 (온보딩 게이지 애니메이션용)
+    var demoPercentage: Double {
+        switch self {
+        case .safe: 15
+        case .caution: 40
+        case .warning: 60
+        case .danger: 85
+        }
+    }
+    
+    /// 다음 레벨 (온보딩 애니메이션 순환용)
+    var next: WarningLevel {
+        switch self {
+        case .safe: .caution
+        case .caution: .warning
+        case .warning: .danger
+        case .danger: .safe
         }
     }
     

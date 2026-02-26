@@ -9,14 +9,17 @@ import SwiftUI
 
 struct ContentView: View {
     
-    @State private var showSplash = true
+    // MARK: - Dependencies
     
-    @State private var isOnboardingCompleted =
-        UserProfileManager.shared.fetchOnboardingCompleted()
+    @Environment(\.localStorage) private var localStorage
+    
+    // MARK: - State
+    
+    @State private var showSplash = true
+    @State private var isOnboardingCompleted = false
     
     var body: some View {
         ZStack {
-            
             if showSplash {
                 SplashView()
                     .transition(.opacity)
@@ -28,6 +31,9 @@ struct ContentView: View {
                 }
             }
         }
+        .onAppear {
+            isOnboardingCompleted = localStorage.loadOnboardingCompleted()
+        }
         .task {
             try? await Task.sleep(for: .seconds(1.5))
             withAnimation(.easeInOut(duration: 0.4)) {
@@ -36,11 +42,10 @@ struct ContentView: View {
         }
         .onReceive(
             NotificationCenter.default.publisher(
-                for: UserProfileManager.userProfileDidChangeNotification
+                for: .userProfileDidChange
             )
         ) { _ in
-            isOnboardingCompleted =
-                UserProfileManager.shared.fetchOnboardingCompleted()
+            isOnboardingCompleted = localStorage.loadOnboardingCompleted()
         }
     }
 }

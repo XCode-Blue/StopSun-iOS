@@ -37,6 +37,7 @@ extension Notification.Name {
     /// 사용자 프로필 변경됨
     ///
     /// 피부 타입, SPF 등 프로필 정보 변경 시 발송
+    /// - Note: `UserProfileManager`, `LocalStorageManager`에서 프로필 변경 시 발송
     static let userProfileDidChange = Notification.Name("userProfileDidChange")
     
     // MARK: - Sync

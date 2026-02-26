@@ -21,24 +21,24 @@ import Foundation
 ///
 /// ```swift
 /// let level = UVLevel(uvIndex: 7.5)  // .high
-/// print(level.rawValue)  // "높음"
+/// print(level.displayTitle)  // "높음" (localized)
 /// ```
 enum UVLevel: String {
 
     /// UV 0-2: 보호 불필요
-    case low = "낮음"
+    case low
     
     /// UV 3-5: 선크림 권장
-    case moderate = "보통"
+    case moderate
     
     /// UV 6-7: 선크림 필수
-    case high = "높음"
+    case high
     
     /// UV 8-10: 외출 자제
-    case veryHigh = "매우 높음"
+    case veryHigh
     
     /// UV 11+: 실내 권장
-    case extreme = "위험"
+    case extreme
     
     /// UV Index로 위험도 생성
     ///
@@ -50,6 +50,19 @@ enum UVLevel: String {
         case ..<8:  self = .high
         case ..<11: self = .veryHigh
         default:    self = .extreme
+        }
+    }
+    
+    // MARK: - Localized Display
+    
+    /// 화면 표시용 이름 (Localized)
+    var displayTitle: String {
+        switch self {
+        case .low:      return L10n.UV.Level.low
+        case .moderate: return L10n.UV.Level.moderate
+        case .high:     return L10n.UV.Level.high
+        case .veryHigh: return L10n.UV.Level.veryHigh
+        case .extreme:  return L10n.UV.Level.extreme
         }
     }
 }

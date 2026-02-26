@@ -122,7 +122,6 @@ final class DIContainer {
     let notification: any NotificationManagerProtocol
     let watchConnectivity: any WatchConnectivityManagerProtocol
     
-    /// `@EnvironmentObject`로 사용하기 위해 concrete 타입으로 노출
     let syncCoordinator: SyncCoordinator
     let permissionManager: PermissionManager
     let errorHandler: ErrorHandler
@@ -153,9 +152,6 @@ final class DIContainer {
     
     // MARK: - Factory
     
-    /// 온보딩 ViewModel 생성
-    ///
-    /// DIContainer의 매니저 인스턴스를 주입하여 OnboardingViewModel을 생성합니다.
     @MainActor
     func makeOnboardingViewModel() -> OnboardingViewModel {
         OnboardingViewModel(
@@ -163,6 +159,25 @@ final class DIContainer {
             location: location,
             notification: notification,
             watchConnectivity: watchConnectivity,
+            permissionManager: permissionManager,
+            localStorage: localStorage
+        )
+    }
+    
+    @MainActor
+    func makeUserProfileViewModel() -> UserProfileViewModel {
+        UserProfileViewModel(localStorage: localStorage)
+    }
+    
+    @MainActor
+    func makeSunScreenViewModel() -> SunScreenViewModel {
+        SunScreenViewModel(localStorage: localStorage)
+    }
+    
+    @MainActor
+    func makeSettingsViewModel() -> SettingsViewModel {
+        SettingsViewModel(
+            localStorage: localStorage,
             permissionManager: permissionManager
         )
     }
