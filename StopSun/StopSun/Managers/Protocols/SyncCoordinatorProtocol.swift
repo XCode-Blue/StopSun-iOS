@@ -49,8 +49,9 @@ protocol SyncCoordinatorProtocol {
     // MARK: - Sync
     
     /// 동기화 시작
-    ///
-    /// 앱 시작 시 호출. 권한 요청 및 초기 데이터 로드
+    /// 
+    /// 앱 시작 시 호출. 권한 확인 후 데이터 로드
+    /// - Note: 권한 요청은 온보딩/PermissionManager가 담당
     func startSync() async
     
     /// 수동 새로고침

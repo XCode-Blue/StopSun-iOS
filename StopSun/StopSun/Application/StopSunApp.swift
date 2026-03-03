@@ -19,7 +19,7 @@ struct StopSunApp: App {
             ContentView()
                 .environment(\.localStorage, container.localStorage)
                 .environment(container.permissionManager)
-                .environmentObject(container.syncCoordinator)
+                .environment(container.syncCoordinator)
                 .environmentObject(container.errorHandler)
                 .onChange(of: scenePhase) { _, newPhase in
                     handleScenePhaseChange(newPhase)

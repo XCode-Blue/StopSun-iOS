@@ -19,20 +19,21 @@ import Foundation
 /// - 경고 레벨 모니터링
 ///
 @MainActor
-final class SyncCoordinator: ObservableObject, SyncCoordinatorProtocol {
+@Observable
+final class SyncCoordinator: SyncCoordinatorProtocol {
     
-    // MARK: - Published Properties
+    // MARK: - Observable Properties
     
-    @Published private(set) var userProfile: UserProfile?
-    @Published private(set) var todayTotalSED: Double = 0
-    @Published private(set) var currentWeather: LocationWeather?
-    @Published private(set) var activeSunscreen: SunscreenApplication?
+    private(set) var userProfile: UserProfile?
+    private(set) var todayTotalSED: Double = 0
+    private(set) var currentWeather: LocationWeather?
+    private(set) var activeSunscreen: SunscreenApplication?
     
     // MARK: - Sync State Properties
     
-    @Published private(set) var isSyncing: Bool = false
-    @Published private(set) var lastSyncTime: Date?
-    @Published private(set) var error: AppError?
+    private(set) var isSyncing: Bool = false
+    private(set) var lastSyncTime: Date?
+    private(set) var error: AppError?
     
     // MARK: - Private State
     
@@ -40,8 +41,8 @@ final class SyncCoordinator: ObservableObject, SyncCoordinatorProtocol {
     private var lastNotifiedWarningLevel: WarningLevel = .safe
     
     // MARK: - Observer Tasks
-    
-    private var observerTasks: [Task<Void, Never>] = []
+    @ObservationIgnored
+    nonisolated(unsafe) private var observerTasks: [Task<Void, Never>] = []
     
     // MARK: - Dependencies
     
@@ -202,34 +203,30 @@ final class SyncCoordinator: ObservableObject, SyncCoordinatorProtocol {
         // 2. 저장된 선크림 상태 로드
         loadActiveSunscreen()
         
-        // 3. HealthKit 권한 요청
-        do {
-            try await healthKit.requestAuthorization()
-            try await healthKit.enableBackgroundDelivery()
-            Log.info("HealthKit 권한 및 Background Delivery 설정 완료")
-        } catch {
-            Log.error("HealthKit 설정 실패: \(error.localizedDescription)")
-            self.error = .healthKit(.authorizationDenied)
+        // 3. HealthKit Background Delivery 설정 (권한은 온보딩에서 요청 완료)
+        if healthKit.isAuthorized {
+            do {
+                try await healthKit.enableBackgroundDelivery()
+                Log.info("HealthKit Background Delivery 설정 완료")
+            } catch {
+                Log.error("HealthKit Background Delivery 실패: \(error.localizedDescription)")
+            }
+        } else {
+            Log.warning("HealthKit 권한 없음 — Background Delivery 스킵")
         }
         
-        // 4. 위치 권한 요청 및 현재 위치 가져오기
-        await location.requestAuthorization()
-        
+        // 4. 현재 위치 및 날씨 조회 (권한은 온보딩에서 요청 완료)
         if location.isAuthorized {
             location.startMonitoringSignificantLocationChanges()
             await fetchCurrentLocationAndWeather()
         } else {
-            Log.warning("위치 권한 없음")
-            self.error = .location(.authorizationDenied)
+            Log.warning("위치 권한 없음 - 서울 기본값 사용")
+            await fetchDefaultWeather()
         }
         
-        // 5. 알림 권한 요청
-        do {
-            try await notification.requestAuthorization()
-            Log.info("알림 권한 설정 완료")
-        } catch {
-            Log.error("알림 권한 실패: \(error.localizedDescription)")
-            self.error = .notification(.authorizationDenied)
+        // 5. 알림 — 권한 없어도 동기화에 영향 없음
+        if !notification.isAuthorized {
+            Log.warning("알림 권한 없음 — 알림 기능 제한")
         }
         
         // 6. 오늘 SED 계산
@@ -402,8 +399,24 @@ private extension SyncCoordinator {
             Log.info("위치/날씨 조회 완료: \(locationInfo.cityName ?? "알 수 없음"), UV \(weather.currentUVIndex)")
             
         } catch {
-            Log.error("위치/날씨 조회 실패: \(error.localizedDescription)")
-            self.error = .weather(.requestFailed)
+            Log.error("위치/날씨 조회 실패: \(error.localizedDescription) - 서울 기본값 사용")
+            await fetchDefaultWeather()
+        }
+    }
+    
+    /// 위치 권한 없거나 조회 실패 시 서울 날씨로 fallback
+    func fetchDefaultWeather() async {
+        do {
+            let weather = try await self.weather.fetchCurrentWeather(for: .mockSeoul)
+            currentWeather = weather
+            Log.info("서울 기본 날씨 로드: UV \(weather.currentUVIndex)")
+        } catch {
+            Log.error("서울 기본 날씨도 실패: \(error.localizedDescription) - 정적 기본값 사용")
+            currentWeather = LocationWeather(
+                location: .mockSeoul,
+                currentUVIndex: 0,
+                currentTemperature: 0
+            )
         }
     }
     
@@ -417,7 +430,14 @@ private extension SyncCoordinator {
             // 오늘의 선크림 히스토리 로드
             let sunscreenHistory = localStorage.loadSunscreenHistory()
             
-            var totalSED: Double = 0
+            // 1. 기존 저장된 기록에서 SED 먼저 로드
+            let existingRecords = localStorage.loadExposureRecords(for: Date())
+            var runningTotal = existingRecords.reduce(0) { $0 + $1.receivedSED }
+            
+            Log.debug("기존 저장 SED: \(String(format: "%.4f", runningTotal)), 기록 \(existingRecords.count)건")
+            
+            // 2. 미처리 레코드만 새로 계산
+            var newCount = 0
             
             for data in timeInDaylightData {
                 // 이미 처리된 데이터 스킵
@@ -436,13 +456,11 @@ private extension SyncCoordinator {
                     sunscreenHistory: sunscreenHistory
                 )
                 
-                totalSED += sed
-                
                 // 해당 시점의 SPF 조회 (노출 기록용)
                 let spf = localStorage.getActiveSPF(at: data.startTime)
                 
-                // 노출 기록 저장
-                let exposureRecord = UVExposureRecord(
+                // 노출 기록 저장 (isProcessed도 여기서 마킹됨)
+                let record = UVExposureRecord(
                     healthKitID: data.id,
                     startTime: data.startTime,
                     endTime: data.endTime,
@@ -450,19 +468,20 @@ private extension SyncCoordinator {
                     appliedSPF: spf,
                     receivedSED: sed
                 )
-                localStorage.saveExposureRecord(exposureRecord)
+                localStorage.saveExposureRecord(record)
+                
+                runningTotal += sed
+                newCount += 1
             }
             
-            // 기존 저장된 SED와 합산
-            let existingRecords = localStorage.loadExposureRecords(for: Date())
-            let existingSED = existingRecords.reduce(0) { $0 + $1.receivedSED }
+            todayTotalSED = runningTotal
             
-            todayTotalSED = existingSED + totalSED
+            Log.debug("새로 처리: \(newCount)건, 최종 SED: \(String(format: "%.4f", todayTotalSED))")
             
             // 일일 MED 기록 업데이트
             var dailyRecord = localStorage.loadDailyMEDRecord(for: Date()) ?? DailyMEDRecord(date: Date())
             dailyRecord.totalSED = todayTotalSED
-            dailyRecord.recordCount = existingRecords.count
+            dailyRecord.recordCount = existingRecords.count + newCount
             localStorage.saveDailyMEDRecord(dailyRecord)
             
             Log.info("오늘 SED 계산 완료: \(String(format: "%.2f", todayTotalSED))")
@@ -473,19 +492,23 @@ private extension SyncCoordinator {
     }
     
     func getUVIndex(for date: Date) async -> Double {
-        // 1. 해당 시점의 위치 조회
-        guard let locationRecord = localStorage.getLocation(at: date) else {
-            Log.warning("과거 위치 없음, 현재 UV 사용")
+        // 1. 해당 시점의 저장된 위치 조회
+        let locationInfo: LocationInfo
+        
+        if let locationRecord = localStorage.getLocation(at: date) {
+            locationInfo = locationRecord.locationInfo
+        } else if let currentLocation = currentWeather?.location {
+            // 2. 저장된 위치 없으면 현재 위치 사용 (앱 첫 설치 등)
+            locationInfo = currentLocation
+            Log.debug("과거 위치 없음, 현재 위치로 과거 UV 조회: \(date.toTimeString)")
+        } else {
+            Log.warning("위치 정보 없음, 현재 UV 사용")
             return currentUVIndex
         }
         
-        // 2. API로 과거 UV 조회
+        // 3. API로 해당 시점 UV 조회
         do {
-            let uvIndex = try await weather.fetchUVIndex(
-                for: locationRecord.locationInfo,
-                at: date
-            )
-            return uvIndex
+            return try await weather.fetchUVIndex(for: locationInfo, at: date)
         } catch {
             Log.error("과거 UV 조회 실패: \(error.localizedDescription)")
             return currentUVIndex
@@ -677,3 +700,54 @@ private extension SyncCoordinator {
         Log.info("Watch 대시보드 데이터 전송")
     }
 }
+
+// MARK: - Preview Helpers
+
+#if DEBUG
+extension SyncCoordinator {
+    
+    /// 디버그용 localStorage 접근
+    var debugLocalStorage: any LocalStorageManagerProtocol { localStorage }
+    
+    /// 디버그용 HealthKit 접근
+    var debugHealthKit: any HealthKitManagerProtocol { healthKit }
+    
+    /// Preview용 상태 설정
+    ///
+    /// `private(set)` 프로퍼티를 직접 설정할 수 있도록 하는 DEBUG 전용 메서드입니다.
+    ///
+    /// ```swift
+    /// #Preview {
+    ///     let coordinator = SyncCoordinator.preview(totalSED: 2.5, uvIndex: 8)
+    ///     DashboardView(viewModel: DashboardViewModel(syncCoordinator: coordinator))
+    /// }
+    /// ```
+    static func preview(
+        totalSED: Double = 0,
+        uvIndex: Double = 5.0,
+        temperature: Double = 25.0,
+        cityName: String = "포항시",
+        skinType: SkinType = .type3,
+        activeSunscreen: SunscreenApplication? = nil
+    ) -> SyncCoordinator {
+        let coordinator = SyncCoordinator(
+            healthKit: MockHealthKitManager(),
+            weather: MockWeatherManager(),
+            location: MockLocationManager(),
+            localStorage: MockLocalStorageManager(),
+            notification: MockNotificationManager(),
+            watchConnectivity: MockWatchConnectivityManager()
+        )
+        coordinator.userProfile = UserProfile(skinType: skinType)
+        coordinator.todayTotalSED = totalSED
+        coordinator.activeSunscreen = activeSunscreen
+        coordinator.currentWeather = LocationWeather(
+            location: LocationInfo(latitude: 36.0190, longitude: 129.3435, cityName: cityName),
+            currentUVIndex: uvIndex,
+            currentTemperature: temperature
+        )
+        coordinator.lastSyncTime = Date()
+        return coordinator
+    }
+}
+#endif

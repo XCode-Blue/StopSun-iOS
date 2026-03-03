@@ -25,18 +25,19 @@ import Foundation
 /// ```
 ///
 @MainActor
-final class MockSyncCoordinator: ObservableObject, SyncCoordinatorProtocol {
+@Observable
+final class MockSyncCoordinator: SyncCoordinatorProtocol {
     
-    // MARK: - Published State
+    // MARK: - State
     
-    @Published private(set) var userProfile: UserProfile?
-    @Published private(set) var todayTotalSED: Double = 0
-    @Published private(set) var currentWeather: LocationWeather?
-    @Published private(set) var activeSunscreen: SunscreenApplication?
+    private(set) var userProfile: UserProfile?
+    private(set) var todayTotalSED: Double = 0
+    private(set) var currentWeather: LocationWeather?
+    private(set) var activeSunscreen: SunscreenApplication?
     
-    @Published private(set) var isSyncing: Bool = false
-    @Published private(set) var lastSyncTime: Date?
-    @Published private(set) var error: AppError?
+    private(set) var isSyncing: Bool = false
+    private(set) var lastSyncTime: Date?
+    private(set) var error: AppError?
     
     // MARK: - 선크림 히스토리 (시간 분할 계산용)
     

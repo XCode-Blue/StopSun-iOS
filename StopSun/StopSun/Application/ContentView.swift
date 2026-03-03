@@ -25,7 +25,7 @@ struct ContentView: View {
                     .transition(.opacity)
             } else {
                 if isOnboardingCompleted {
-                    DashboardView()
+                    AppTabView()
                 } else {
                     OnboardingContainerView()
                 }

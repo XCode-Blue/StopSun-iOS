@@ -59,6 +59,7 @@ final class DIContainer {
             healthKit: healthKit,
             location: location
         )
+        let router = Router()
         
         return DIContainer(
             healthKit: healthKit,
@@ -69,6 +70,7 @@ final class DIContainer {
             watchConnectivity: watchConnectivity,
             syncCoordinator: syncCoordinator,
             permissionManager: permissionManager,
+            router: router,
             errorHandler: errorHandler
         )
     }()
@@ -100,6 +102,8 @@ final class DIContainer {
             location: location
         )
         
+        let router = Router()
+        
         return DIContainer(
             healthKit: healthKit,
             weather: weather,
@@ -109,6 +113,7 @@ final class DIContainer {
             watchConnectivity: watchConnectivity,
             syncCoordinator: syncCoordinator,
             permissionManager: permissionManager,
+            router: router,
             errorHandler: errorHandler
         )
     }()
@@ -125,6 +130,7 @@ final class DIContainer {
     let syncCoordinator: SyncCoordinator
     let permissionManager: PermissionManager
     let errorHandler: ErrorHandler
+    let router: Router
     
     // MARK: - Initializer
     
@@ -137,6 +143,7 @@ final class DIContainer {
         watchConnectivity: any WatchConnectivityManagerProtocol,
         syncCoordinator: SyncCoordinator,
         permissionManager: PermissionManager,
+        router: Router,
         errorHandler: ErrorHandler
     ) {
         self.healthKit = healthKit
@@ -147,6 +154,7 @@ final class DIContainer {
         self.watchConnectivity = watchConnectivity
         self.syncCoordinator = syncCoordinator
         self.permissionManager = permissionManager
+        self.router = router
         self.errorHandler = errorHandler
     }
     
@@ -180,5 +188,10 @@ final class DIContainer {
             localStorage: localStorage,
             permissionManager: permissionManager
         )
+    }
+    
+    @MainActor
+    func makeDashboardViewModel() -> DashboardViewModel {
+        DashboardViewModel(syncCoordinator: syncCoordinator)
     }
 }

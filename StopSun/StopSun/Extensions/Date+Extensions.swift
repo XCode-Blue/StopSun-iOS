@@ -43,4 +43,9 @@ extension Date {
     var toRelativeString: String {
         formatted(.relative(presentation: .named))
     }
+    
+    /// 날짜 + 요일 표시 (2월 15일, 토요일)
+    var toDayWithWeekdayString: String {
+        formatted(.dateTime.month().day().weekday(.wide).locale(Locale(identifier: "ko_KR")))
+    }
 }

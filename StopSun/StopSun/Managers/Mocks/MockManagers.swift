@@ -50,9 +50,10 @@ final class MockWeatherManager: WeatherManagerProtocol {
 // MARK: - MockLocationManager
 
 final class MockLocationManager: LocationManagerProtocol {
+    
     var isAuthorized: Bool { true }
     var isDenied: Bool { false }
-    
+
     func requestAuthorization() async {}
     
     func getCurrentLocation() async throws -> LocationInfo {
