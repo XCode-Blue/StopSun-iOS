@@ -59,6 +59,13 @@ final class DashboardViewModel {
         syncCoordinator.warningLevel
     }
     
+    // MARK: - Weekly Chart
+    
+    /// 주간 MED 차트 아이템
+    var weeklyChartItems: [WeeklyBarItem] {
+        syncCoordinator.loadWeeklyChartItems()
+    }
+    
     // MARK: - Weather Data
     
     var uvIndex: Int {

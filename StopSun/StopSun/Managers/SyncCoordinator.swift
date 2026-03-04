@@ -12,7 +12,7 @@ import Foundation
 /// HealthKit, Weather, Storage 간의 데이터 흐름을 조율합니다.
 ///
 /// ## 핵심 역할
-/// - 앱 시작 시 권한 요청 및 초기 데이터 로드
+/// - 앱 시작 시 초기 데이터 로드 (권한 요청은 온보딩/PermissionManager 담당)
 /// - HealthKit Background Delivery 수신 및 SED 계산
 /// - 위치 변경 감지 및 날씨 조회
 /// - 선크림 도포 관리 및 알림 예약
@@ -111,6 +111,50 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
             uvIndex: currentUVIndex,
             spf: spf
         )
+    }
+    
+    // MARK: - Weekly Chart Data
+    
+    /// 최근 7일간 MED 차트 데이터 조회
+    ///
+    /// LocalStorage에서 DailyMEDRecord를 읽어 WeeklyBarItem 배열로 변환합니다.
+    /// 오늘 데이터는 실시간 를 사용합니다.
+    func loadWeeklyChartItems() -> [WeeklyBarItem] {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let daySymbols = ["일", "월", "화", "수", "목", "금", "토"]
+        
+        guard let skinType = userProfile?.skinType else {
+            // 프로필 없으면 빈 7일
+            return (0..<7).map { offset in
+                let date = calendar.date(byAdding: .day, value: offset - 6, to: today)!
+                let weekday = calendar.component(.weekday, from: date) - 1
+                return WeeklyBarItem(dayLabel: daySymbols[weekday], percent: nil, isToday: offset == 6)
+            }
+        }
+        
+        let maxSED = skinType.maxDailyMEDinSED
+        
+        return (0..<7).map { offset in
+            let date = calendar.date(byAdding: .day, value: offset - 6, to: today)!
+            let weekday = calendar.component(.weekday, from: date) - 1
+            let isToday = offset == 6
+            let label = daySymbols[weekday]
+            
+            if isToday {
+                // 오늘은 실시간 데이터 사용
+                let percent = maxSED > 0 ? (todayTotalSED / maxSED) * 100 : 0
+                return WeeklyBarItem(dayLabel: label, percent: percent, isToday: true)
+            }
+            
+            // 과거 데이터는 LocalStorage에서
+            if let record = localStorage.loadDailyMEDRecord(for: date) {
+                let percent = maxSED > 0 ? (record.totalSED / maxSED) * 100 : 0
+                return WeeklyBarItem(dayLabel: label, percent: percent, isToday: false)
+            }
+            
+            return WeeklyBarItem(dayLabel: label, percent: nil, isToday: false)
+        }
     }
     
     // MARK: - Setup Observers
@@ -220,8 +264,7 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
             location.startMonitoringSignificantLocationChanges()
             await fetchCurrentLocationAndWeather()
         } else {
-            Log.warning("위치 권한 없음 - 서울 기본값 사용")
-            await fetchDefaultWeather()
+            Log.warning("위치 권한 없음 — 위치/날씨 조회 스킵")
         }
         
         // 5. 알림 — 권한 없어도 동기화에 영향 없음
@@ -644,19 +687,44 @@ private extension SyncCoordinator {
 
     /// Watch에서 수신한 즉시 메시지 처리
     func handleWatchMessage(_ message: [String: Any]) {
-        Log.debug("Watch 메시지 수신: \(message[WatchMessageKey.type] as? String ?? "unknown")")
+        let type = message[WatchMessageKey.type] as? String
+        Log.debug("Watch 메시지 수신: \(type ?? "unknown")")
 
+        switch type {
+        case WatchMessageKey.TypeValue.sunscreenApplication:
+            handleSunscreenFromWatch(message)
+        case WatchMessageKey.TypeValue.sunscreenCancellation:
+            stopSunscreen()
+            sendDashboardToWatch()
+            Log.info("Watch에서 선크림 중단 수신")
+        default:
+            break
+        }
+        
+        // 대시보드 동기화 요청 (type 무관하게 별도 키 체크)
         if message[WatchMessageKey.requestDashboardSync] as? Bool == true {
             sendDashboardToWatch()
         }
     }
 
+    /// Watch에서 선크림 도포 수신
+    func handleSunscreenFromWatch(_ message: [String: Any]) {
+        let spfRaw = message[WatchMessageKey.sunscreenSPF] as? Int ?? 50
+        let spf = SPFLevel(rawValue: spfRaw) ?? .spf50
+        
+        applySunscreen(spf: spf)
+        Log.info("Watch에서 선크림 도포 수신: SPF \(spfRaw)")
+    }
+
     /// Watch에서 수신한 백그라운드 UserInfo 처리
     func handleUserInfoFromWatch(_ userInfo: [String: Any]) {
-        Log.debug("Watch UserInfo 수신: \(userInfo[WatchMessageKey.type] as? String ?? "unknown")")
+        let type = userInfo[WatchMessageKey.type] as? String
+        Log.debug("Watch UserInfo 수신: \(type ?? "unknown")")
 
-        // 향후 Watch → iPhone 백그라운드 데이터 처리
-        // 예: 운동 데이터, Watch에서 선크림 도포 확인 등
+        // Watch → iPhone 백그라운드 선크림 도포
+        if type == WatchMessageKey.TypeValue.sunscreenApplication {
+            handleSunscreenFromWatch(userInfo)
+        }
     }
 
     /// Watch에 대시보드 데이터 전송 및 Application Context 업데이트
@@ -681,6 +749,7 @@ private extension SyncCoordinator {
         if let sunscreen = activeSunscreen {
             data[WatchMessageKey.sunscreenSPF] = sunscreen.spfLevel.rawValue
             data[WatchMessageKey.sunscreenAppliedAt] = sunscreen.appliedAt.timeIntervalSince1970
+            data[WatchMessageKey.reapplyMinutes] = sunscreen.reapplyIntervalMinutes
         }
 
         // 1. Application Context 업데이트 (보장된 전달 — 먼저 실행)

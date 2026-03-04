@@ -35,6 +35,7 @@ enum WatchMessageKey {
         static let dashboardData = "dashboard_data"
         static let userProfile = "user_profile"
         static let sunscreenApplication = "sunscreen_application"
+        static let sunscreenCancellation = "sunscreen_cancellation"
         static let medStatus = "med_status"
     }
 

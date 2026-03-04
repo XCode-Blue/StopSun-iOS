@@ -21,6 +21,9 @@ protocol WatchConnectivityManagerProtocol: AnyObject {
 
     // MARK: - State
 
+    /// Watch 페어링 상태
+    var isPaired: Bool { get }
+    
     /// Watch 연결 상태
     var isReachable: Bool { get }
 

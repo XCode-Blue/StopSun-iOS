@@ -22,6 +22,7 @@ final class WatchConnectivityManager: NSObject, ObservableObject, WatchConnectiv
 
     // MARK: - Published Properties
 
+    var isPaired: Bool { session?.isPaired ?? false }
     @Published private(set) var isReachable: Bool = false
 
     // MARK: - Callbacks

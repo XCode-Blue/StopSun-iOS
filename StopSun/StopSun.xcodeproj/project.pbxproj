@@ -56,6 +56,17 @@
 			);
 			target = 058BD66F2E793E2C00AAF08B /* StopSun */;
 		};
+		8092DFD72F50C3A800E643BC /* Exceptions for "Shared" folder in "StopSunWatch Watch App" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resources/Color.xcassets,
+				Resources/DesignSystem/Button/SSButton.swift,
+				Resources/DesignSystem/Button/SSPrimaryButtonStyle.swift,
+				Resources/DesignSystem/GageView/MEDGaugeCardView.swift,
+				Resources/DesignSystem/Preview/DesignSystemSampleView.swift,
+			);
+			target = 058BD6812E793E3A00AAF08B /* StopSunWatch Watch App */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -74,6 +85,9 @@
 		};
 		058BD6AD2E793EC000AAF08B /* Shared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				8092DFD72F50C3A800E643BC /* Exceptions for "Shared" folder in "StopSunWatch Watch App" target */,
+			);
 			path = Shared;
 			sourceTree = "<group>";
 		};

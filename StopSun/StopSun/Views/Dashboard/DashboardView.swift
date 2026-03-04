@@ -23,22 +23,27 @@ struct DashboardView: View {
         ZStack {
             Color.white01.ignoresSafeArea()
             
-            VStack(alignment: .leading, spacing: 0) {
-                headerSection
-                
-                cardCarousel
-                    .padding(.vertical, 32)
-                
-                pageIndicator
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.bottom, 40)
-                
-                weatherSection
-                
-                Spacer()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    headerSection
+                    
+                    cardCarousel
+                        .padding(.vertical, 32)
+                    
+                    pageIndicator
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.bottom, 40)
+                    
+                    weatherSection
+                    
+                    chartSection
+                        .padding(.top, 24)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 40)
+                .padding(.bottom, 20)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 40)
+            .scrollIndicators(.hidden)
         }
         .task {
             await viewModel.onAppear()
@@ -140,6 +145,12 @@ struct DashboardView: View {
                     .animation(.easeInOut(duration: 0.2), value: viewModel.currentPage)
             }
         }
+    }
+    
+    // MARK: - Weekly Chart
+    
+    private var chartSection: some View {
+        WeeklyMEDChartView(items: viewModel.weeklyChartItems)
     }
     
     // MARK: - Weather

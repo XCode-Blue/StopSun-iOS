@@ -148,6 +148,9 @@ enum L10n {
     // MARK: - UV
     
     enum UV {
+        
+        static var label: String { .localized("uv.label") }
+        
         enum Level {
             static var low: String { .localized("uv.level.low") }
             static var moderate: String { .localized("uv.level.moderate") }
@@ -415,6 +418,20 @@ enum L10n {
         enum AppInfo {
             static var privacy: String { .localized("settings.appInfo.privacy") }
             static var support: String { .localized("settings.appInfo.support") }
+        }
+    }
+
+    enum Timer {
+        static var startPrompt: String { .localized("timer.start.prompt") }
+        static var start: String { .localized("timer.start") }
+        static var refresh: String { .localized("timer.refresh") }
+        static var restart: String { .localized("timer.restart") }
+        static var stop: String { .localized("timer.stop") }
+        static var cancel: String { .localized("timer.cancel") }
+        static var untilReapply: String { .localized("timer.untilReapply") }
+        
+        enum Alert {
+            static var reapply: String { .localized("timer.reapply.alert") }
         }
     }
 }
