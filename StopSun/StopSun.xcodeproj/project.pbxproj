@@ -120,12 +120,6 @@
 			path = StopSunTests;
 			sourceTree = "<group>";
 		};
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				8C42B1022F51682700856B55 /* Exceptions for "StopSunWidget" folder in "StopSunWidgetExtension" target */,
-			);
-			path = StopSunWidget;
-			sourceTree = "<group>";
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -170,7 +164,6 @@
 				058BD6722E793E2C00AAF08B /* StopSun */,
 				058BD6832E793E3A00AAF08B /* StopSunWatch Watch App */,
 				804E4BE02F309FE40019E4EE /* StopSunTests */,
-				8C42B0ED2F51682600856B55 /* StopSunWidget */,
 				8C42B0E82F51682600856B55 /* Frameworks */,
 				058BD6712E793E2C00AAF08B /* Products */,
 			);
@@ -284,9 +277,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				8C42B0ED2F51682600856B55 /* StopSunWidget */,
 			);
 			name = StopSunWidgetExtension;
 			packageProductDependencies = (
