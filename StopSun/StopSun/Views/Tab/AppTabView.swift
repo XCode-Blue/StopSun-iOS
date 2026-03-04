@@ -27,7 +27,7 @@ struct AppTabView: View {
             // MARK: - 정보
             
             NavigationStack {
-                InfoPlaceholderView()
+                SuncareInfoView()
             }
             .tabItem {
                 tabLabel(for: .info)
@@ -37,7 +37,7 @@ struct AppTabView: View {
             // MARK: - 설정
             
             NavigationStack {
-                SettingsPlaceholderView()
+                SettingsView()
             }
             .tabItem {
                 tabLabel(for: .settings)
@@ -65,29 +65,6 @@ struct AppTabView: View {
 }
 
 // MARK: - Placeholder Views
-
-/// 정보 탭 placeholder (추후 실제 화면으로 교체)
-struct InfoPlaceholderView: View {
-    var body: some View {
-        ZStack {
-            Color.white01.ignoresSafeArea()
-            
-            VStack(spacing: 12) {
-                Image(systemName: "info.fill")
-                    .font(.system(size: 48))
-                    .foregroundStyle(.text04)
-                
-                Text("정보")
-                    .font(.ssFont(.SB4))
-                    .foregroundStyle(.text00)
-                
-                Text("자외선 정보성 글이 여기 표시됩니다.")
-                    .font(.ssFont(.R3))
-                    .foregroundStyle(.text04)
-            }
-        }
-    }
-}
 
 /// 설정 탭 placeholder (추후 실제 화면으로 교체)
 struct SettingsPlaceholderView: View {
