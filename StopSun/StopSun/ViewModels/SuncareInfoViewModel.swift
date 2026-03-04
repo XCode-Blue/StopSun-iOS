@@ -9,12 +9,14 @@ import Foundation
 
 /// 정보 화면 ViewModel
 ///
-/// Bundle 내 JSON 파일에서 자외선/선크림 정보 아티클을 로딩합니다.
+/// Bundle 내 lproj 기반 JSON 파일에서 아티클을 로딩합니다.
+/// `Bundle.main.url(forResource:withExtension:)`이
+/// 기기 locale에 맞는 lproj를 자동 탐색합니다.
+///
 /// 외부 Manager 의존성이 없으므로 DIContainer 팩토리 메서드 불필요합니다.
 ///
 /// ## 사용법
 /// ```swift
-/// // View에서 .task로 로딩
 /// @State private var viewModel = SuncareInfoViewModel()
 ///
 /// SuncareInfoView(viewModel: viewModel)
@@ -59,6 +61,9 @@ final class SuncareInfoViewModel {
     }
     
     /// Bundle에서 JSON 파일을 로딩하여 디코딩
+    ///
+    /// lproj 구조이므로 Bundle이 기기 locale에 맞는
+    /// `ko.lproj/` 또는 `en.lproj/` 파일을 자동 선택합니다.
     private func loadArticles() {
         guard let url = Bundle.main.url(
             forResource: fileName,

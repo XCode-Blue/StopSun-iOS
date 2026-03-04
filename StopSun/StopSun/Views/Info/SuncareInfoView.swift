@@ -16,7 +16,13 @@ struct SuncareInfoView: View {
     
     // MARK: - Dependencies
     
-    let viewModel: SuncareInfoViewModel
+    @State private var viewModel: SuncareInfoViewModel
+    
+    // MARK: - Init
+    
+    init(viewModel: SuncareInfoViewModel? = nil) {
+        self._viewModel = State(wrappedValue: viewModel ?? SuncareInfoViewModel())
+    }
     
     // MARK: - Body
     
@@ -29,7 +35,7 @@ struct SuncareInfoView: View {
                     header
                     content
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 16)
             }
         }
         .navigationDestination(for: SuncareInfoArticle.self) { article in
@@ -47,7 +53,8 @@ struct SuncareInfoView: View {
             .font(.ssFont(.B2))
             .foregroundStyle(Color.text00)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(20)
+            .padding(.top, 16)
+            .padding(.bottom, 16)
     }
     
     // MARK: - Content
@@ -66,7 +73,7 @@ struct SuncareInfoView: View {
     // MARK: - Article List
     
     private var articleList: some View {
-        LazyVStack(spacing: 20) {
+        LazyVStack(spacing: 16) {
             ForEach(viewModel.articles) { article in
                 NavigationLink(value: article) {
                     SuncareInfoCardView(article: article)
@@ -74,7 +81,7 @@ struct SuncareInfoView: View {
                 .buttonStyle(.plain)
             }
         }
-        .padding(.bottom, 40)
+        .padding(.bottom, 16)
     }
     
     // MARK: - Error View
@@ -110,9 +117,7 @@ struct SuncareInfoView: View {
 }
 
 #Preview("Info Error") {
-    let vm = SuncareInfoViewModel(fileName: "__nonexistent__")
-    vm.loadIfNeeded()
-    return NavigationStack {
-        SuncareInfoView(viewModel: vm)
+    NavigationStack {
+        SuncareInfoView(viewModel: SuncareInfoViewModel(fileName: "__nonexistent__"))
     }
 }

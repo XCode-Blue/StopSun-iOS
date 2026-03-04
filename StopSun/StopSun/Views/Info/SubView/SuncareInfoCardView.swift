@@ -45,6 +45,14 @@ struct SuncareInfoCardView: View {
             .frame(height: 200)
             .frame(maxWidth: .infinity)
             .clipped()
+            .clipShape(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 20,
+                    bottomLeadingRadius: 0,
+                    bottomTrailingRadius: 0,
+                    topTrailingRadius: 20
+                )
+            )
     }
     
     // MARK: - Text Content
@@ -54,12 +62,12 @@ struct SuncareInfoCardView: View {
             categoryBadge
             
             Text(article.title)
-                .font(.ssFont(.SB3))
+                .font(.ssFont(.SB2))
                 .foregroundStyle(Color.text00)
                 .lineLimit(2)
             
             Text(subtitle)
-                .font(.ssFont(.R3))
+                .font(.ssFont(.R2))
                 .foregroundStyle(Color.text04)
                 .lineLimit(2)
         }

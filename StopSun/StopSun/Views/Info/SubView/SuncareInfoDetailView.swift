@@ -71,6 +71,7 @@ struct SuncareInfoDetailView: View {
             .aspectRatio(contentMode: .fill)
             .frame(height: 200)
             .frame(maxWidth: .infinity)
+            .clipped()
             .clipShape(RoundedRectangle(cornerRadius: 20))
             .padding(.horizontal, 20)
     }
@@ -84,7 +85,7 @@ struct SuncareInfoDetailView: View {
             Text(article.title)
                 .font(.ssFont(.SB3))
                 .foregroundStyle(Color.key00)
-                .padding(.top, 28)
+                .padding(.top, 16)
             
             // 본문 문단들
             ForEach(Array(article.paragraphs.enumerated()), id: \.offset) { _, paragraph in
@@ -92,15 +93,11 @@ struct SuncareInfoDetailView: View {
             }
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 60)
+        .padding(.bottom, 20)
     }
     
     // MARK: - Paragraph Rendering
     
-    /// 문단 텍스트 렌더링
-    ///
-    /// `**bold**` 마크다운 패턴을 감지하여
-    /// AttributedString으로 볼드 처리합니다.
     @ViewBuilder
     private func paragraphView(_ text: String) -> some View {
         if text.contains("**") {
@@ -110,26 +107,15 @@ struct SuncareInfoDetailView: View {
                 .lineSpacing(6)
         } else {
             Text(text)
-                .font(.ssFont(.R3))
+                .font(.ssFont(.R4))
                 .foregroundStyle(Color.text00)
                 .lineSpacing(6)
         }
     }
     
-    /// `**bold**` 패턴을 AttributedString으로 변환
-    ///
-    /// ## 변환 예시
-    /// ```
-    /// "SPF는 **자외선 B(UVB)**로부터"
-    /// → "SPF는 " + [bold]"자외선 B(UVB)"[/bold] + "로부터"
-    /// ```
-    ///
-    /// `**`가 홀수 개(닫히지 않은 경우)이면
-    /// 일반 텍스트로 fallback합니다.
     private func parseBoldMarkdown(_ text: String) -> AttributedString {
         let parts = text.components(separatedBy: "**")
         
-        // **가 짝수 개가 아니면 일반 텍스트로 처리
         let delimiterCount = parts.count - 1
         guard delimiterCount > 0 && delimiterCount % 2 == 0 else {
             return AttributedString(text)
@@ -142,7 +128,6 @@ struct SuncareInfoDetailView: View {
             
             var attributed = AttributedString(part)
             
-            // 홀수 인덱스 = bold 영역
             if index % 2 == 1 {
                 attributed.font = .ssFont(.SB2)
                 attributed.foregroundColor = Color.text00
@@ -170,3 +155,4 @@ struct SuncareInfoDetailView: View {
         )
     }
 }
+
