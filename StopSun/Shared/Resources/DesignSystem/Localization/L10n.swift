@@ -357,6 +357,18 @@ enum L10n {
         }
     }
     
+    // MARK: - Info
+    
+    enum Info {
+        /// "정보"
+        static var title: String { .localized("info.title") }
+        
+        enum Error {
+            /// "정보를 불러올 수 없습니다"
+            static var loadFailed: String { .localized("info.error.loadFailed") }
+        }
+    }
+    
     // MARK: - Settings
     
     enum Settings {
