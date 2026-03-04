@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+#if DEBUG
 struct TypographyPreviewView: View {
 
     var body: some View {
@@ -77,3 +78,4 @@ struct TypographyPreviewView: View {
 #Preview {
     TypographyPreviewView()
 }
+#endif

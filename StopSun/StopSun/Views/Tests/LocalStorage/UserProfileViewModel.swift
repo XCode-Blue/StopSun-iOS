@@ -10,6 +10,7 @@ import Combine
 
 /// 사용자 프로필 관련 View를 위한 ViewModel
 /// - ViewModel은 Manager를 통해 데이터에 접근
+#if DEBUG
 @MainActor
 final class UserProfileViewModel: ObservableObject {
 
@@ -174,3 +175,4 @@ final class UserProfileViewModel: ObservableObject {
         }
     }
 }
+#endif

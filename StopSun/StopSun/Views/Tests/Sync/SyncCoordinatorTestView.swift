@@ -20,6 +20,7 @@ import SwiftUI
 /// #endif
 /// ```
 ///
+#if DEBUG
 struct SyncCoordinatorTestView: View {
     
     @StateObject private var viewModel = SyncCoordinatorTestViewModel()
@@ -233,3 +234,4 @@ private extension SyncCoordinatorTestView {
 #Preview {
     SyncCoordinatorTestView()
 }
+#endif

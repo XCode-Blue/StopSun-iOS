@@ -127,11 +127,7 @@ final class WatchConnectivityManager: NSObject, ObservableObject, WatchConnectiv
 
     func updateApplicationContext(_ context: [String: Any]) throws {
         guard let session = session else {
-            throw NSError(
-                domain: "WatchConnectivity",
-                code: -1,
-                userInfo: [NSLocalizedDescriptionKey: "Session is not available"]
-            )
+            throw AppError.watchConnectivity(.sessionInactive)
         }
 
         do {
@@ -139,7 +135,7 @@ final class WatchConnectivityManager: NSObject, ObservableObject, WatchConnectiv
             Log.debug("Application Context 업데이트 완료")
         } catch {
             Log.error("Application Context 업데이트 실패: \(error.localizedDescription)")
-            throw error
+            throw AppError.watchConnectivity(.transferFailed)
         }
     }
 }

@@ -7,6 +7,7 @@
 
 import Foundation
 
+#if DEBUG
 @MainActor
 final class HealthKitTestViewModel: ObservableObject {
     
@@ -143,3 +144,4 @@ final class HealthKitTestViewModel: ObservableObject {
         isLoading = false
     }
 }
+#endif

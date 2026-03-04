@@ -372,7 +372,7 @@ struct SettingsView: View {
 }
 
 // MARK: - Preview
-
+#if DEBUG
 #Preview("Settings") {
     SettingsView(
         viewModel: SettingsViewModel(
@@ -385,3 +385,4 @@ struct SettingsView: View {
         )
     )
 }
+#endif

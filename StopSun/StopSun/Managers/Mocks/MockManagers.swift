@@ -9,7 +9,7 @@ import Foundation
 import UserNotifications
 
 // MARK: - MockHealthKitManager
-
+#if DEBUG
 final class MockHealthKitManager: HealthKitManagerProtocol {
     var isAvailable: Bool { true }
     var isAuthorized: Bool { true }
@@ -231,9 +231,9 @@ final class MockNotificationManager: NotificationManagerProtocol {
 // MARK: - MockWatchConnectivityManager
 
 final class MockWatchConnectivityManager: WatchConnectivityManagerProtocol {
-    
+
     var _isPaired: Bool = true
-    
+
     var isPaired: Bool { _isPaired }
     var isReachable: Bool { false }
 
@@ -254,3 +254,68 @@ final class MockWatchConnectivityManager: WatchConnectivityManagerProtocol {
     func transferUserInfo(_ userInfo: [String: Any]) {}
     func updateApplicationContext(_ context: [String: Any]) throws {}
 }
+
+@MainActor
+final class MockLiveActivityManager: LiveActivityManagerProtocol {
+
+    // MARK: - Properties
+
+    var isActivityActive: Bool { _isActivityActive }
+
+    private(set) var _isActivityActive = false
+    private(set) var lastWarningLevel: WarningLevel?
+    private(set) var lastProgress: Double?
+    private(set) var lastAppliedAt: Date?
+    private(set) var lastReapplyAt: Date?
+    private(set) var lastSpfTitle: String?
+
+    private(set) var startCallCount = 0
+    private(set) var updateCallCount = 0
+    private(set) var endCallCount = 0
+
+    // MARK: - Methods
+
+    func startActivity(
+        appliedAt: Date,
+        reapplyAt: Date,
+        spfDisplayTitle: String,
+        warningLevel: WarningLevel,
+        progress: Double
+    ) {
+        _isActivityActive = true
+        lastAppliedAt = appliedAt
+        lastReapplyAt = reapplyAt
+        lastSpfTitle = spfDisplayTitle
+        lastWarningLevel = warningLevel
+        lastProgress = progress
+        startCallCount += 1
+    }
+
+    func updateWarningLevel(_ warningLevel: WarningLevel, progress: Double) {
+        lastWarningLevel = warningLevel
+        lastProgress = progress
+        updateCallCount += 1
+    }
+
+    func endActivity() {
+        _isActivityActive = false
+        lastWarningLevel = nil
+        endCallCount += 1
+    }
+
+    // MARK: - Test Helper
+
+    /// 테스트 시작 전 상태를 초기화하고 싶을 때 사용
+    func resetMock() {
+        _isActivityActive = false
+        lastWarningLevel = nil
+        lastProgress = nil
+        lastAppliedAt = nil
+        lastReapplyAt = nil
+        lastSpfTitle = nil
+        startCallCount = 0
+        updateCallCount = 0
+        endCallCount = 0
+    }
+}
+#endif

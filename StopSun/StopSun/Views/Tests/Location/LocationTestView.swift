@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if DEBUG
 struct LocationTestView: View {
     
     @StateObject private var viewModel = LocationTestViewModel()
@@ -134,3 +135,4 @@ private extension LocationTestView {
 #Preview {
     LocationTestView()
 }
+#endif

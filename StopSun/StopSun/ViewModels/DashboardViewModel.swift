@@ -58,13 +58,18 @@ final class DashboardViewModel {
     var warningLevel: WarningLevel {
         syncCoordinator.warningLevel
     }
+
+    /// SyncCoordinator 에러 (ErrorHandler 연결용)
+    var syncError: AppError? {
+        syncCoordinator.error
+    }
     
     // MARK: - Weekly Chart
     
     /// 주간 MED 차트 아이템
     var weeklyChartItems: [WeeklyBarItem] {
         syncCoordinator.loadWeeklyChartItems()
-    }
+	}
     
     // MARK: - Weather Data
     

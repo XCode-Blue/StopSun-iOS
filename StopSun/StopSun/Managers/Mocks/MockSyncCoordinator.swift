@@ -24,6 +24,7 @@ import Foundation
 /// let mock = MockSyncCoordinator.warning
 /// ```
 ///
+#if DEBUG
 @MainActor
 @Observable
 final class MockSyncCoordinator: SyncCoordinatorProtocol {
@@ -275,3 +276,4 @@ extension MockSyncCoordinator {
         return mock
     }
 }
+#endif

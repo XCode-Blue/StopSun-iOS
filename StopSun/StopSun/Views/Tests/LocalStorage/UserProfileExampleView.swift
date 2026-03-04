@@ -10,6 +10,7 @@ import SwiftUI
 /// 사용자 프로필 기능 사용 예제 View
 /// - View는 ViewModel을 통해서만 데이터에 접근
 /// - Manager/Service에 직접 접근하지 않음
+#if DEBUG
 struct UserProfileExampleView: View {
 
     // MARK: - ViewModel
@@ -188,3 +189,4 @@ struct UserProfileExampleView: View {
 #Preview {
     UserProfileExampleView()
 }
+#endif

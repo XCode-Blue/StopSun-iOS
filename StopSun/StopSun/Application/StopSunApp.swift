@@ -21,6 +21,7 @@ struct StopSunApp: App {
                 .environment(container.permissionManager)
                 .environment(container.syncCoordinator)
                 .environmentObject(container.errorHandler)
+                .errorAlert(container.errorHandler)
                 .onChange(of: scenePhase) { _, newPhase in
                     handleScenePhaseChange(newPhase)
                 }
@@ -32,8 +33,11 @@ struct StopSunApp: App {
         case .active:
             Task {
                 await container.permissionManager.checkAllStatuses()
+                await container.syncCoordinator.refresh()
             }
-        case .background, .inactive:
+        case .background:
+            container.syncCoordinator.handleAppWillResignActive()
+        case .inactive:
             break
         @unknown default:
             break

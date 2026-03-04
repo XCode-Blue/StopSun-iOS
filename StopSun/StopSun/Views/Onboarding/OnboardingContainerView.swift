@@ -150,7 +150,7 @@ struct OnboardingContainerView: View {
 }
 
 // MARK: - Preview
-
+#if DEBUG
 #Preview("Onboarding - Introduction") {
     let vm = DIContainer.preview.makeOnboardingViewModel()
     OnboardingContainerView(viewModel: vm)
@@ -161,3 +161,4 @@ struct OnboardingContainerView: View {
     vm.currentPhase = .setup
     return OnboardingContainerView(viewModel: vm)
 }
+#endif

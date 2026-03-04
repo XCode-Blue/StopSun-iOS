@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if DEBUG
 struct DesignSystemSampleView: View {
     
     @State private var selectedSkinType: SkinType = .type1
@@ -304,3 +305,4 @@ struct DesignSystemSampleView: View {
     
     return Wrapper()
 }
+#endif

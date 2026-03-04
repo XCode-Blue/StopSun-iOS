@@ -10,6 +10,7 @@ import SwiftUI
 ///  테스트용 - 나중에 삭제
 import SwiftUI
 
+#if DEBUG
 struct HealthKitTestView: View {
     @StateObject private var viewModel = HealthKitTestViewModel()
     
@@ -165,3 +166,4 @@ struct HealthKitTestView: View {
 #Preview {
     HealthKitTestView()
 }
+#endif

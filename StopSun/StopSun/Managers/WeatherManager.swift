@@ -87,22 +87,3 @@ final class WeatherManager: WeatherManagerProtocol {
         )
     }
 }
-
-// MARK: - Errors
-
-enum WeatherError: LocalizedError { // TODO: - 에러 파일 분리
-    case networkFailed(String)
-    case decodingFailed
-    case noData
-    
-    var errorDescription: String? {
-        switch self {
-        case .networkFailed(let message):
-            return "Network error: \(message)"
-        case .decodingFailed:
-            return "Failed to decode weather data"
-        case .noData:
-            return "No weather data available"
-        }
-    }
-}

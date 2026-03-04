@@ -8,6 +8,7 @@
 import SwiftUI
 import UserNotifications
 
+#if DEBUG
 struct NotificationTestView: View {
 
     private let manager: NotificationManagerProtocol = NotificationManager()
@@ -159,3 +160,4 @@ struct NotificationTestView: View {
 #Preview {
     NotificationTestView()
 }
+#endif

@@ -44,7 +44,7 @@ final class WeatherAPIClient {
             return try decoder.decode(WeatherAPIResponse.self, from: data)
         } catch {
             Log.error("Decoding Error: \(error)")
-            throw WeatherError.decodingFailed
+            throw AppError.weather(.parsingFailed)
         }
     }
 }
@@ -56,8 +56,8 @@ extension MoyaProvider {
                 switch result {
                 case .success(let response):
                     continuation.resume(returning: response)
-                case .failure(let error):
-                    continuation.resume(throwing: WeatherError.networkFailed(error.localizedDescription))
+                case .failure(_):
+                    continuation.resume(throwing: AppError.weather(.requestFailed))
                 }
             }
         }

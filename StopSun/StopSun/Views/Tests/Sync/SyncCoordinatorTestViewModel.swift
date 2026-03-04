@@ -8,6 +8,7 @@
 import Foundation
 
 /// SyncCoordinator 테스트용 ViewModel
+#if DEBUG
 @MainActor
 final class SyncCoordinatorTestViewModel: ObservableObject {
     
@@ -203,3 +204,4 @@ struct LogEntry: Identifiable {
         timestamp.formatted(date: .omitted, time: .standard)
     }
 }
+#endif

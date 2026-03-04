@@ -10,6 +10,7 @@ import SwiftUI
 /// 선크림 기능 사용 예제 View
 /// - View는 ViewModel을 통해서만 데이터에 접근
 /// - Manager/Service에 직접 접근하지 않음
+#if DEBUG
 struct SunScreenExampleView: View {
 
     // MARK: - ViewModel
@@ -110,3 +111,4 @@ struct DetailRow: View {
 }
 
 #Preview { SunScreenExampleView() }
+#endif

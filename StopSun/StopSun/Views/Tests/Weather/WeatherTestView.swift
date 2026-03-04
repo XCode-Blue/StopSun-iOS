@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if DEBUG
 struct WeatherTestView: View {
     
     @StateObject private var viewModel = WeatherTestViewModel()
@@ -133,3 +134,4 @@ private extension WeatherTestView {
 #Preview {
     WeatherTestView()
 }
+#endif

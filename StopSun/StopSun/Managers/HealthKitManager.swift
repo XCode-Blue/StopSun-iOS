@@ -24,7 +24,7 @@ final class HealthKitManager: HealthKitManagerProtocol {
     }
     
     var isAuthorized: Bool {
-        let status = healthStore.authorizationStatus(for: timeInDaylightType)
+        _ = healthStore.authorizationStatus(for: timeInDaylightType)
         return true
     }
     
@@ -33,7 +33,7 @@ final class HealthKitManager: HealthKitManagerProtocol {
     func requestAuthorization() async throws {
         // TODO: 구현
         guard isAvailable else {
-            throw HealthKitError.notAvailable // TODO: - 에러 핸들러 처리 필요
+            throw AppError.healthKit(.notAvailable)
         }
         
         let typesToRead: Set<HKObjectType> = [timeInDaylightType]
@@ -54,7 +54,7 @@ final class HealthKitManager: HealthKitManagerProtocol {
     
     func fetchTimeInDaylight(from start: Date, to end: Date) async throws -> [TimeInDaylight] {
         guard isAvailable else {
-            throw HealthKitError.notAvailable // TODO: - 에러 핸들러 처리 필요
+            throw AppError.healthKit(.notAvailable)
         }
         
         let predicate = HKQuery.predicateForSamples(
@@ -93,7 +93,7 @@ final class HealthKitManager: HealthKitManagerProtocol {
     
     func enableBackgroundDelivery() async throws {
         guard isAvailable else {
-            throw HealthKitError.notAvailable // TODO: - 에러 핸들링 처리 필요
+            throw AppError.healthKit(.notAvailable)
         }
         
         try await healthStore.enableBackgroundDelivery(for: timeInDaylightType, frequency: .immediate)
@@ -117,24 +117,5 @@ final class HealthKitManager: HealthKitManagerProtocol {
         }
         
         healthStore.execute(query)
-    }
-}
-
-// MARK: - Error
-
-enum HealthKitError: Error { // TODO: - 분리 필요
-    case notAvailable
-    case notAuthorized
-    case queryFailed
-    
-    var errorDescription: String? {
-        switch self {
-        case .notAvailable:
-            return "HealthKit is not available on this device"
-        case .notAuthorized:
-            return "HealthKit authorization denied"
-        case .queryFailed:
-            return "HealthKit query failed"
-        }
     }
 }

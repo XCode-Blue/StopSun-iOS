@@ -34,6 +34,9 @@ final class LocationManager: NSObject, LocationManagerProtocol {
      
      /// 권한 요청 continuation
      private var authContinuation: CheckedContinuation<Void, Never>?
+     
+     /// 타임아웃 Task (정상 응답 시 취소)
+     private var timeoutTask: Task<Void, Never>?
     
     // MARK: - Init
     
@@ -139,13 +142,14 @@ final class LocationManager: NSObject, LocationManagerProtocol {
             existing.resume(throwing: CancellationError())
             locationContinuation = nil
         }
+        timeoutTask?.cancel()
         
         return try await withCheckedThrowingContinuation { continuation in
             locationContinuation = continuation
             clLocationManager.requestLocation()
             
             // 타임아웃: 응답 없으면 에러 반환
-            Task { [weak self] in
+            timeoutTask = Task { [weak self] in
                 try? await Task.sleep(nanoseconds: 10 * 1_000_000_000)
                 
                 guard let self, let pending = self.locationContinuation else { return }
@@ -199,6 +203,8 @@ extension LocationManager: CLLocationManagerDelegate {
         
         // 단일 위치 요청 응답
         if let continuation = locationContinuation {
+            timeoutTask?.cancel()
+            timeoutTask = nil
             locationContinuation = nil
             continuation.resume(returning: location)
             return
@@ -212,6 +218,8 @@ extension LocationManager: CLLocationManagerDelegate {
         Log.error("위치 조회 실패: \(error.localizedDescription)")
         
         if let continuation = locationContinuation {
+            timeoutTask?.cancel()
+            timeoutTask = nil
             locationContinuation = nil
             continuation.resume(throwing: AppError.location(.locationUnavailable))
         }

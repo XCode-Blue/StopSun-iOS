@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 
+#if DEBUG
 @MainActor
 final class LocationTestViewModel: ObservableObject {
     
@@ -103,3 +104,4 @@ final class LocationTestViewModel: ObservableObject {
         }
     }
 }
+#endif

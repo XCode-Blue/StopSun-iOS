@@ -7,6 +7,7 @@
 
 import Foundation
 
+#if DEBUG
 @MainActor
 final class WeatherTestViewModel: ObservableObject {
     
@@ -70,3 +71,4 @@ final class WeatherTestViewModel: ObservableObject {
         }
     }
 }
+#endif
