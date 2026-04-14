@@ -14,7 +14,8 @@ import SwiftUI
 /// - Digital Crown (수직 페이지) → 선크림 타이머
 ///
 struct WatchMainView: View {
-    
+
+    @Environment(\.scenePhase) var scenePhase
     @StateObject var viewModel: WatchMainViewModel
     @State private var showingUVI = false
     
@@ -42,6 +43,11 @@ struct WatchMainView: View {
                 .tag(WatchPage.timer)
         }
         .tabViewStyle(.verticalPage)
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                viewModel.requestDashboardSync()
+            }
+        }
     }
 }
 
