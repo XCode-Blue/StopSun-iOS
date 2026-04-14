@@ -39,7 +39,10 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
     
     /// 마지막 알림 전송된 경고 레벨 (중복 알림 방지)
     private var lastNotifiedWarningLevel: WarningLevel = .safe
-    
+
+    /// 날씨 캐시 TTL (초)
+    private static let weatherCacheTTL: TimeInterval = 900  // 15분
+
     // MARK: - Observer Tasks
     @ObservationIgnored
     nonisolated(unsafe) private var observerTasks: [Task<Void, Never>] = []
@@ -397,6 +400,7 @@ private extension SyncCoordinator {
             var runningTotal = existingRecords.reduce(0) { $0 + $1.receivedSED }
 
             let processedIDs = Set(existingRecords.compactMap(\.healthKitID))
+            var uvCache: [String: Double] = [:]
 
             var newCount = 0
             var totalMinutes = 0
@@ -416,13 +420,19 @@ private extension SyncCoordinator {
                     ?? currentWeather?.location
                     ?? .mockSeoul
 
-                let uvIndex: Double
+                let cacheKey = "\(String(format: "%.2f", locationInfo.latitude)),\(String(format: "%.2f", locationInfo.longitude))-\(calendar.component(.hour, from: data.startTime))"
 
-                do {
-                    uvIndex = try await weather.fetchUVIndex(for: locationInfo, at: data.startTime)
-                } catch {
-                    Log.error("과거 UV 조회 실패: \(error.localizedDescription)")
-                    uvIndex = currentUVIndex
+                let uvIndex: Double
+                if let cached = uvCache[cacheKey] {
+                    uvIndex = cached
+                } else {
+                    do {
+                        uvIndex = try await weather.fetchUVIndex(for: locationInfo, at: data.startTime)
+                    } catch {
+                        Log.error("과거 UV 조회 실패: \(error.localizedDescription)")
+                        uvIndex = currentUVIndex
+                    }
+                    uvCache[cacheKey] = uvIndex
                 }
 
                 let sed = SEDCalculator.calculateWithSunscreenHistory(
@@ -688,6 +698,13 @@ private extension SyncCoordinator {
     /// 과거 UV 조회 시 위치 정보를 활용할 수 있도록 합니다.
     /// 날씨가 한 번도 성공하지 못한 경우에만 서울 기본값으로 대체합니다.
     func fetchCurrentLocationAndWeather() async {
+
+        if let weather = currentWeather,
+           Date().timeIntervalSince(weather.fetchedAt) < Self.weatherCacheTTL {
+            Log.debug("날씨 캐시 유효 (\(Int(Date().timeIntervalSince(weather.fetchedAt)))초 경과), API 스킵")
+            return
+        }
+
         do {
             let locationInfo = try await location.getCurrentLocation()
             
