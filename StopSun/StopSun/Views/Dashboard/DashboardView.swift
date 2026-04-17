@@ -12,6 +12,7 @@ struct DashboardView: View {
     @State private var viewModel: DashboardViewModel
     @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var errorHandler: ErrorHandler
+    @State private var isScrolled = false
 #if DEBUG
     @State private var showDebugSheet = false
 #endif
@@ -48,6 +49,19 @@ struct DashboardView: View {
             .refreshable {
                 await viewModel.pullToRefresh()
             }
+            .onScrollGeometryChange(for: Bool.self) { geo in
+                geo.contentOffset.y + geo.contentInsets.top > 90  // 40 → 90
+            } action: { _, isScrolled in
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    self.isScrolled = isScrolled
+                }
+            }
+        }
+        .overlay(alignment: .top) {
+            if isScrolled {
+                miniHeader
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
         }
         .task {
             await viewModel.onAppear()
@@ -80,6 +94,41 @@ struct DashboardView: View {
             DashboardDebugView(syncCoordinator: viewModel.debugSyncCoordinator)
         }
 #endif
+    }
+    
+    // MARK: - Mini Header (스크롤 시)
+    
+    private var miniHeader: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            (
+                Text(L10n.MED.Status.prefix)
+                    .foregroundStyle(.text00) +
+                Text(viewModel.warningLevel.title)
+                    .foregroundStyle(viewModel.warningLevel.color) +
+                Text(L10n.MED.Status.suffix)
+                    .foregroundStyle(viewModel.warningLevel.color)
+            )
+            .font(.ssFont(.SB4))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 20)
+        .padding(.top, 32)
+        .background(
+            LinearGradient(
+                stops: [
+                    Gradient.Stop(color: .white01, location: 0.00),
+                    Gradient.Stop(color: Color.white01.opacity(0.6), location: 1.00),
+                ],
+                startPoint: UnitPoint(x: 0.5, y: 0),
+                endPoint: UnitPoint(x: 0.5, y: 1)
+            )
+        )
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(Color.white00)
+                .frame(height: 1)
+        }
     }
     
     // MARK: - Header
