@@ -23,6 +23,9 @@ final class HealthKitManager: HealthKitManagerProtocol {
     /// 권한 요청 완료 플래그 키
     private static let authRequestedKey = "stopsun.permission.healthKitRequested"
     
+    /// ObserverQuery 중복 등록 방지
+    private var observerQuery: HKObserverQuery?
+    
     var isAvailable: Bool {
         HKHealthStore.isHealthDataAvailable()
     }
@@ -103,6 +106,11 @@ final class HealthKitManager: HealthKitManagerProtocol {
         
         try await healthStore.enableBackgroundDelivery(for: timeInDaylightType, frequency: .immediate)
         
+        guard observerQuery == nil else {
+            Log.debug("ObserverQuery 이미 등록됨 — 스킵")
+            return
+        }
+        
         setupObserverQuery()
     }
     
@@ -120,6 +128,7 @@ final class HealthKitManager: HealthKitManagerProtocol {
             NotificationCenter.default.post(name: .healthKitDataDidUpdate, object: nil)
         }
         
+        observerQuery = query
         healthStore.execute(query)
     }
 }
