@@ -184,7 +184,7 @@ final class DIContainer {
     @MainActor
     func makeSettingsViewModel() -> SettingsViewModel {
         SettingsViewModel(
-            localStorage: localStorage,
+            syncCoordinator: syncCoordinator,
             permissionManager: permissionManager
         )
     }

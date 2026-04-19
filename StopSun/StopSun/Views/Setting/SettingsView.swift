@@ -376,7 +376,7 @@ struct SettingsView: View {
 #Preview("Settings") {
     SettingsView(
         viewModel: SettingsViewModel(
-            localStorage: MockLocalStorageManager(),
+            syncCoordinator: MockSyncCoordinator(),
             permissionManager: PermissionManager(
                 notification: MockNotificationManager(),
                 healthKit: MockHealthKitManager(),
