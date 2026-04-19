@@ -63,10 +63,7 @@ struct DashboardView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
-        .task {
-            await viewModel.onAppear()
-        }
-        .onChange(of: scenePhase) { _, newPhase in
+        .onChange(of: scenePhase, initial: true) { _, newPhase in
             if newPhase == .active {
                 Task { await viewModel.onAppear() }
             }
