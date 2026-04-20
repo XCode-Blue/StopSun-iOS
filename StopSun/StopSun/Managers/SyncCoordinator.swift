@@ -425,7 +425,7 @@ private extension SyncCoordinator {
                     ?? currentWeather?.location
                     ?? .mockSeoul
 
-                let cacheKey = "\(String(format: "%.2f", locationInfo.latitude)),\(String(format: "%.2f", locationInfo.longitude))-\(calendar.component(.hour, from: data.startTime))"
+                let cacheKey = "\(String(format: "%.2f", locationInfo.latitude)),\(String(format: "%.2f", locationInfo.longitude))-\(date.toAPIDateString)-\(calendar.component(.hour, from: data.startTime))"
 
                 let uvIndex: Double
                 if let cached = cache[cacheKey] {
