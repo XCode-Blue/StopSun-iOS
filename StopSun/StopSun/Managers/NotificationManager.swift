@@ -126,7 +126,7 @@ final class NotificationManager: NSObject, NotificationManagerProtocol {
         
         let medCategory = UNNotificationCategory(
             identifier: NotificationCategory.medWarning,
-            actions: [dismissAction],
+            actions: [applyAction, dismissAction],
             intentIdentifiers: [],
             options: []
         )
