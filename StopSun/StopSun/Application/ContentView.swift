@@ -15,30 +15,18 @@ struct ContentView: View {
     
     // MARK: - State
     
-    @State private var showSplash = true
     @State private var isOnboardingCompleted = false
     
     var body: some View {
         ZStack {
-            if showSplash {
-                SplashView()
-                    .transition(.opacity)
+            if isOnboardingCompleted {
+                AppTabView()
             } else {
-                if isOnboardingCompleted {
-                    AppTabView()
-                } else {
-                    OnboardingContainerView()
-                }
+                OnboardingContainerView()
             }
         }
         .onAppear {
             isOnboardingCompleted = localStorage.loadOnboardingCompleted()
-        }
-        .task {
-            try? await Task.sleep(for: .seconds(1.5))
-            withAnimation(.easeInOut(duration: 0.4)) {
-                showSplash = false
-            }
         }
         .onReceive(
             NotificationCenter.default.publisher(

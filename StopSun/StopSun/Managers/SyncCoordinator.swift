@@ -39,7 +39,10 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
     
     /// 마지막 알림 전송된 경고 레벨 (중복 알림 방지)
     private var lastNotifiedWarningLevel: WarningLevel = .safe
-    
+
+    /// 날씨 캐시 TTL (초)
+    private static let weatherCacheTTL: TimeInterval = 900  // 15분
+
     // MARK: - Observer Tasks
     @ObservationIgnored
     nonisolated(unsafe) private var observerTasks: [Task<Void, Never>] = []
@@ -359,13 +362,20 @@ private extension SyncCoordinator {
         let calendar = Calendar.current
         let today = Date()
         
-        // 첫 sync → 7일 (차트용), 이후 → 3일 (지연 도착 대응)
+        // 첫 sync → 7일 (차트용), 이후 → 3일
         let lookbackDays = lastSyncTime == nil ? 6 : 2
-        
+
+        let sunscreenHistory = localStorage.loadSunscreenHistory()
+        let locationHistory = localStorage.loadLocationHistory()
+
         // 과거 → 오늘 순서로 처리 (오늘이 마지막이어야 todayTotalSED 최종 반영)
         for dayOffset in (0...lookbackDays).reversed() {
             guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
-            await calculateSED(for: date)
+            await calculateSED(
+                for: date,
+                sunscreenHistory: sunscreenHistory,
+                locationHistory: locationHistory
+            )
         }
     }
     
@@ -373,43 +383,67 @@ private extension SyncCoordinator {
     ///
     /// HealthKit에서 해당 날짜의 TimeInDaylight 데이터를 조회하고,
     /// 미처리 레코드만 선별하여 SED를 계산합니다.
-    func calculateSED(for date: Date) async {
+    func calculateSED(
+        for date: Date,
+        sunscreenHistory: [SunscreenApplication],
+        locationHistory: [LocationRecord]
+    ) async {
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
         let endOfDay = calendar.isDateInToday(date)
             ? Date()
             : calendar.date(byAdding: .day, value: 1, to: startOfDay)!
-        
+
         do {
             let timeInDaylightData = try await healthKit.fetchTimeInDaylight(from: startOfDay, to: endOfDay)
-            let sunscreenHistory = localStorage.loadSunscreenHistory()
-            
-            // 1. 기존 저장된 기록에서 SED 먼저 로드
             let existingRecords = localStorage.loadExposureRecords(for: date)
             var runningTotal = existingRecords.reduce(0) { $0 + $1.receivedSED }
-            
-            // 2. 미처리 레코드만 새로 계산
+
+            let processedIDs = Set(existingRecords.compactMap(\.healthKitID))
+            var uvCache: [String: Double] = [:]
+
             var newCount = 0
             var totalMinutes = 0
-            
+
             for data in timeInDaylightData {
                 totalMinutes += Int(data.endTime.timeIntervalSince(data.startTime) / 60)
-                
-                if localStorage.isProcessed(healthKitID: data.id) {
+
+                if processedIDs.contains(data.id) {
                     continue
                 }
-                
-                let uvIndex = await getUVIndex(for: data.startTime)
-                
+
+                let locationRecord = locationHistory.last { record in
+                    abs(record.timestamp.timeIntervalSince(data.startTime)) < 600
+                }
+
+                let locationInfo = locationRecord?.locationInfo
+                    ?? currentWeather?.location
+                    ?? .mockSeoul
+
+                let cacheKey = "\(String(format: "%.2f", locationInfo.latitude)),\(String(format: "%.2f", locationInfo.longitude))-\(calendar.component(.hour, from: data.startTime))"
+
+                let uvIndex: Double
+                if let cached = uvCache[cacheKey] {
+                    uvIndex = cached
+                } else {
+                    do {
+                        uvIndex = try await weather.fetchUVIndex(for: locationInfo, at: data.startTime)
+                    } catch {
+                        Log.error("과거 UV 조회 실패: \(error.localizedDescription)")
+                        uvIndex = currentUVIndex
+                    }
+                    uvCache[cacheKey] = uvIndex
+                }
+
                 let sed = SEDCalculator.calculateWithSunscreenHistory(
                     start: data.startTime,
                     end: data.endTime,
                     uvIndex: uvIndex,
                     sunscreenHistory: sunscreenHistory
                 )
-                
-                let spf = localStorage.getActiveSPF(at: data.startTime)
-                
+
+                let spf = sunscreenHistory.first { $0.isActive(at: data.startTime) }?.spfLevel ?? .none
+
                 let record = UVExposureRecord(
                     healthKitID: data.id,
                     startTime: data.startTime,
@@ -418,64 +452,31 @@ private extension SyncCoordinator {
                     appliedSPF: spf,
                     receivedSED: sed
                 )
+
                 localStorage.saveExposureRecord(record)
-                
+
                 runningTotal += sed
                 newCount += 1
             }
-            
-            // 3. 오늘이면 실시간 반영
+
             if calendar.isDateInToday(date) {
                 todayTotalSED = runningTotal
             }
-            
-            // 4. DailyMEDRecord 업데이트
+
             var dailyRecord = localStorage.loadDailyMEDRecord(for: date) ?? DailyMEDRecord(date: date)
             dailyRecord.totalSED = runningTotal
             dailyRecord.recordCount = existingRecords.count + newCount
             dailyRecord.totalExposureMinutes = totalMinutes
             localStorage.saveDailyMEDRecord(dailyRecord)
-            
+
             if newCount > 0 {
                 Log.info("\(date.toDateString) SED 계산: \(String(format: "%.2f", runningTotal)), 새로 처리 \(newCount)건")
             }
-            
         } catch {
             Log.error("\(date.toDateString) SED 계산 실패: \(error.localizedDescription)")
             if calendar.isDateInToday(date) {
                 self.error = .healthKit(.dataFetchFailed)
             }
-        }
-    }
-    
-    /// 특정 시점의 UV Index 조회
-    ///
-    /// Weather History API를 통해 과거 시점의 정확한 UV Index를 가져옵니다.
-    ///
-    /// ## Fallback 순서
-    /// 1. 해당 시점의 저장된 위치 → Weather History API
-    /// 2. 현재 날씨의 위치 → Weather History API
-    /// 3. 기본 위치(서울) → Weather History API
-    /// 4. API 실패 시 → 현재 UV Index
-    func getUVIndex(for date: Date) async -> Double {
-        let locationInfo: LocationInfo
-        
-        if let locationRecord = localStorage.getLocation(at: date) {
-            locationInfo = locationRecord.locationInfo
-        } else if let currentLocation = currentWeather?.location {
-            locationInfo = currentLocation
-            Log.debug("과거 위치 없음, 현재 위치로 과거 UV 조회: \(date.toTimeString)")
-        } else {
-            // 위치 정보 없음 — 기본 위치로 과거 UV 조회
-            Log.debug("위치 정보 없음, 기본 위치로 과거 UV 조회")
-            locationInfo = .mockSeoul
-        }
-        
-        do {
-            return try await weather.fetchUVIndex(for: locationInfo, at: date)
-        } catch {
-            Log.error("과거 UV 조회 실패: \(error.localizedDescription)")
-            return currentUVIndex
         }
     }
 }
@@ -697,6 +698,13 @@ private extension SyncCoordinator {
     /// 과거 UV 조회 시 위치 정보를 활용할 수 있도록 합니다.
     /// 날씨가 한 번도 성공하지 못한 경우에만 서울 기본값으로 대체합니다.
     func fetchCurrentLocationAndWeather() async {
+
+        if let weather = currentWeather,
+           Date().timeIntervalSince(weather.fetchedAt) < Self.weatherCacheTTL {
+            Log.debug("날씨 캐시 유효 (\(Int(Date().timeIntervalSince(weather.fetchedAt)))초 경과), API 스킵")
+            return
+        }
+
         do {
             let locationInfo = try await location.getCurrentLocation()
             

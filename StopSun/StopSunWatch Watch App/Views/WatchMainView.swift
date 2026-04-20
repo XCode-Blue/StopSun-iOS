@@ -17,6 +17,7 @@ struct WatchMainView: View {
     
     @Bindable var viewModel: WatchMainViewModel
     
+    
     @State private var showingUVI = false
     
     var body: some View {
@@ -43,6 +44,11 @@ struct WatchMainView: View {
                 .tag(WatchPage.timer)
         }
         .tabViewStyle(.verticalPage)
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                viewModel.requestDashboardSync()
+            }
+        }
     }
 }
 
