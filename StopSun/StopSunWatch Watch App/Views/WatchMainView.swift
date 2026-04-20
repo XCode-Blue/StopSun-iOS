@@ -15,8 +15,8 @@ import SwiftUI
 ///
 struct WatchMainView: View {
     
+    @Environment(\.scenePhase) var scenePhase
     @Bindable var viewModel: WatchMainViewModel
-    
     
     @State private var showingUVI = false
     
