@@ -15,7 +15,8 @@ import SwiftUI
 ///
 struct WatchMainView: View {
     
-    @StateObject var viewModel: WatchMainViewModel
+    @Bindable var viewModel: WatchMainViewModel
+    
     @State private var showingUVI = false
     
     var body: some View {
