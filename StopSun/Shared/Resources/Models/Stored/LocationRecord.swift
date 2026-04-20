@@ -40,6 +40,12 @@ struct LocationRecord: Codable, Identifiable {
     /// 경도
     let longitude: Double
     
+    /// 도시 이름
+    ///
+    /// 역지오코딩으로 조회한 도시명
+    /// 기존 데이터 호환을 위해 Optional로 유지
+    let cityName: String?
+    
     /// 기록 시각
     ///
     /// 과거 위치 조회 시 기준이 됩니다.
@@ -49,11 +55,13 @@ struct LocationRecord: Codable, Identifiable {
         id: UUID = UUID(),
         latitude: Double,
         longitude: Double,
+        cityName: String? = nil,
         timestamp: Date = Date()
     ) {
         self.id = id
         self.latitude = latitude
         self.longitude = longitude
+        self.cityName = cityName
         self.timestamp = timestamp
     }
     
@@ -62,11 +70,16 @@ struct LocationRecord: Codable, Identifiable {
         self.id = UUID()
         self.latitude = location.latitude
         self.longitude = location.longitude
+        self.cityName = location.cityName
         self.timestamp = Date()
     }
     
     /// LocationInfo로 변환
     var locationInfo: LocationInfo {
-        LocationInfo(latitude: latitude, longitude: longitude)
+        LocationInfo(
+            latitude: latitude,
+            longitude: longitude,
+            cityName: cityName
+        )
     }
 }
