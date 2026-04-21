@@ -17,8 +17,13 @@ import Foundation
 @Observable
 final class DashboardViewModel {
     // MARK: - View State
-    
+
     var currentPage: Int = 0
+
+    /// Watch 미보유 시 MED 자동 추적 불가 → 선크림 타이머 중심 UI
+    var hasWatch: Bool {
+        syncCoordinator.userProfile?.hasWatch ?? true
+    }
     
     /// 캐싱된 날짜 문자열 (하루에 한 번만 갱신)
     private(set) var formattedDate: String = ""
@@ -171,12 +176,17 @@ final class DashboardViewModel {
     /// 최초 진입 또는 포그라운드 복귀 시 호출
     func onAppear() async {
         formattedDate = Date().toDayWithWeekdayString
-        
+
+        // Watch 미보유 시 선크림 타이머 카드를 기본으로
+        if !hasWatch && currentPage == 0 {
+            currentPage = 1
+        }
+
         guard let lastSync = syncCoordinator.lastSyncTime else {
             await syncCoordinator.startSync()
             return
         }
-        
+
         if Date().timeIntervalSince(lastSync) > resyncInterval {
             await syncCoordinator.startSync()
         }

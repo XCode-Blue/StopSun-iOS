@@ -453,6 +453,12 @@ enum L10n {
             static var title: String { .localized("settings.spf.title") }
             static var desc: String { .localized("settings.spf.desc") }
         }
+
+        enum Daylight {
+            static var title: String { .localized("settings.daylight.title") }
+            static var desc: String { .localized("settings.daylight.desc") }
+            static var open: String { .localized("settings.daylight.open") }
+        }
         
         enum AppInfo {
             static var privacy: String { .localized("settings.appInfo.privacy") }

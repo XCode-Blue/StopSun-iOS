@@ -2778,6 +2778,60 @@
         }
       }
     },
+    "settings.daylight.title" : {
+      "comment" : "설정 - 일광 시간 기록 타이틀",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time in Daylight"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일광 시간 기록"
+          }
+        }
+      }
+    },
+    "settings.daylight.desc" : {
+      "comment" : "설정 - 일광 시간 기록 설명",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record your time in daylight in the Health app."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "건강 앱에서 오늘의 일광 시간을 기록해요."
+          }
+        }
+      }
+    },
+    "settings.daylight.open" : {
+      "comment" : "설정 - 일광 시간 건강앱 열기 버튼",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "건강"
+          }
+        }
+      }
+    },
     "settings.title" : {
       "comment" : "설정 화면 타이틀",
       "extractionState" : "manual",

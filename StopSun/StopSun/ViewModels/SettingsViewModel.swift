@@ -101,9 +101,20 @@ final class SettingsViewModel {
         return "v\(version) (\(build))"
     }
     
+    /// Apple Watch 미보유 여부
+    var hasWatch: Bool {
+        syncCoordinator.userProfile?.hasWatch ?? true
+    }
+
     /// 설정 앱으로 이동
     func openAppSettings() {
         guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
+    }
+
+    /// 건강 앱 (일광 시간) 열기
+    func openHealthApp() {
+        guard let url = URL(string: "x-apple-health://") else { return }
         UIApplication.shared.open(url)
     }
 }

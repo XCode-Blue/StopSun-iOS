@@ -133,7 +133,8 @@ struct OnboardingContainerView: View {
                 onHasWatch: {
                     Task { await viewModel.handleHasWatch() }
                 },
-                onNoWatch: { viewModel.handleNoWatch() }
+                onNoWatch: { viewModel.handleNoWatch() },
+                onContinueWithoutWatch: { viewModel.continueWithoutWatch() }
             )
             
         case .permission:
