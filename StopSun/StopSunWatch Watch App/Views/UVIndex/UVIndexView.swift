@@ -10,7 +10,7 @@ import SwiftUI
 /// UV Index 화면
 struct UVIndexView: View {
     
-    @ObservedObject var viewModel: WatchMainViewModel
+    var viewModel: WatchMainViewModel
     
     private var level: UVLevel { viewModel.uvLevel }
     
