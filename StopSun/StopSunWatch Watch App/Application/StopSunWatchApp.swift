@@ -12,7 +12,7 @@ import WatchKit
 struct StopSunWatch_Watch_AppApp: App {
     @WKExtensionDelegateAdaptor(WatchAppDelegate.self) var delegate
     
-    @StateObject private var viewModel = WatchMainViewModel()
+    @State private var viewModel = WatchMainViewModel()
 
     var body: some Scene {
         WindowGroup {

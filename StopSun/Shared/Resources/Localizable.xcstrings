@@ -1630,13 +1630,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You've reached 30%% of your daily UV exposure. Stay aware of your UV exposure."
+            "value" : "You've reached 30% of your daily UV exposure. Stay aware of your UV exposure."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "일일 자외선 노출량의 30%%에 도달했습니다. 자외선 노출에 주의하세요."
+            "value" : "일일 자외선 노출량의 30%에 도달했습니다. 자외선 노출에 주의하세요."
           }
         }
       }
@@ -1665,13 +1665,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You've reached 70%% of your daily UV limit. Consider seeking shade."
+            "value" : "You've reached 70% of your daily UV limit. Consider seeking shade."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "일일 자외선 한계의 70%%에 도달했습니다. 그늘을 찾는 것이 좋습니다."
+            "value" : "일일 자외선 한계의 70%에 도달했습니다. 그늘을 찾는 것이 좋습니다."
           }
         }
       }
@@ -1700,13 +1700,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "30%% UV Exposure"
+            "value" : "30% UV Exposure"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "자외선 노출 30%%"
+            "value" : "자외선 노출 30%"
           }
         }
       }
@@ -1718,13 +1718,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "50%% UV Exposure"
+            "value" : "50% UV Exposure"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "자외선 노출 50%%"
+            "value" : "자외선 노출 50%"
           }
         }
       }
@@ -1735,13 +1735,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "70%% UV Exposure"
+            "value" : "70% UV Exposure"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "자외선 노출 70%%"
+            "value" : "자외선 노출 70%"
           }
         }
       }

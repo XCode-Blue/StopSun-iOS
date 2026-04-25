@@ -21,35 +21,41 @@ import Combine
 /// 3. 실시간 메시지 / Context 수신으로 UI 갱신
 ///
 @MainActor
-final class WatchMainViewModel: ObservableObject {
+@Observable
+final class WatchMainViewModel {
     
-    // MARK: - Published (MED / UVI)
+    // MARK: - Properties (MED / UVI)
     
-    @Published var currentUVIndex: Double = 0
-    @Published var todayTotalSED: Double = 0
-    @Published var maxSED: Double = 1.0
+    var currentUVIndex: Double = 0
+    var todayTotalSED: Double = 0
+    var maxSED: Double = 1.0
     
-    // MARK: - Published (Sunscreen Timer)
+    // MARK: - Properties (Sunscreen Timer)
     
-    @Published var sunscreenAppliedAt: Date?
-    @Published var sunscreenSPF: Int?
-    @Published var reapplyIntervalMinutes: Int = 120
-    @Published private(set) var remainingSeconds: Int = 0
+    var sunscreenAppliedAt: Date?
+    var sunscreenSPF: Int?
+    var reapplyIntervalMinutes: Int = 120
+    private(set) var remainingSeconds: Int = 0
     
-    // MARK: - Published (Navigation)
+    // MARK: - Properties (Navigation)
 
-    @Published var selectedPage: WatchPage = .dashboard
+    var selectedPage: WatchPage = .dashboard
 
-    // MARK: - Published (Connection)
+    // MARK: - Properties (Connection)
 
-    @Published var isPhoneConnected: Bool = false
-    @Published var lastSyncTime: Date?
-    @Published var syncFailed: Bool = false
+    var isPhoneConnected: Bool = false
+    var lastSyncTime: Date?
+    var syncFailed: Bool = false
     
-    // MARK: - Private
+    // MARK: - Private (Combine / non-observable)
     
+    @ObservationIgnored
     private let sessionManager = WatchSessionManager.shared
+    
+    @ObservationIgnored
     private var cancellables = Set<AnyCancellable>()
+    
+    @ObservationIgnored
     private var timerCancellable: AnyCancellable?
     
     // MARK: - Computed (MED)
@@ -82,6 +88,7 @@ final class WatchMainViewModel: ObservableObject {
     
     // MARK: - Computed (Sync)
     
+    @ObservationIgnored
     private static let timeFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "HH:mm"
@@ -119,19 +126,12 @@ final class WatchMainViewModel: ObservableObject {
     // MARK: - Notification Observers
 
     /// WatchNotificationDelegate의 알림 액션 이벤트를 구독합니다.
-    ///
-    /// - `.watchDidTapSunscreenYes` → 선크림 도포 + 타이머 페이지 이동
-    /// - `.watchDidTapSunscreenNo` → 로그 기록
-    /// - `.watchDidTapNotificationBody` → 타이머 페이지 이동
-    ///
-    /// - Note: 스레드 안전성을 위해 `.receive(on: DispatchQueue.main)` 적용
     private func setupNotificationObservers() {
         let sunscreenYes = NotificationCenter.default.publisher(for: .watchDidTapSunscreenYes)
             .map { _ in true }
         let bodyTap = NotificationCenter.default.publisher(for: .watchDidTapNotificationBody)
             .map { _ in false }
 
-        // "예" 버튼 또는 알림 본문 탭 → 타이머 페이지로 이동
         sunscreenYes.merge(with: bodyTap)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isSunscreenApply in
@@ -143,7 +143,6 @@ final class WatchMainViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // "아니오" 버튼 → 별도 처리 없음
         NotificationCenter.default.publisher(for: .watchDidTapSunscreenNo)
             .receive(on: DispatchQueue.main)
             .sink { _ in
@@ -155,25 +154,25 @@ final class WatchMainViewModel: ObservableObject {
     // MARK: - Connectivity Setup
 
     private func setupConnectivity() {
-        // 즉시 메시지 수신
         sessionManager.onMessageReceived = { [weak self] message in
             self?.handleMessage(message)
         }
         
-        // UserInfo 수신
         sessionManager.onUserInfoReceived = { [weak self] userInfo in
             self?.handleUserInfo(userInfo)
         }
         
-        // Application Context 수신
         sessionManager.onApplicationContextReceived = { [weak self] context in
             self?.handleDashboardData(context)
         }
         
-        // Reachability 관찰
+        // @Observable에서는 assign(to:) 사용 불가 → sink로 대체
         sessionManager.$isReachable
             .receive(on: DispatchQueue.main)
-            .assign(to: &$isPhoneConnected)
+            .sink { [weak self] reachable in
+                self?.isPhoneConnected = reachable
+            }
+            .store(in: &cancellables)
     }
     
     private func loadCachedData() {
@@ -184,7 +183,6 @@ final class WatchMainViewModel: ObservableObject {
     
     // MARK: - Public Actions
     
-    /// iPhone에 대시보드 동기화 요청
     func requestDashboardSync() {
         syncFailed = false
         sessionManager.requestDashboardSync(onError: { [weak self] in
@@ -194,13 +192,11 @@ final class WatchMainViewModel: ObservableObject {
         })
     }
     
-    /// 선크림 도포 (Watch에서)
     func applySunscreen() {
         sunscreenAppliedAt = Date()
         sunscreenSPF = sunscreenSPF ?? 50
         startTimer()
         
-        // iPhone에 전송
         let message: [String: Any] = [
             WatchMessageKey.type: WatchMessageKey.TypeValue.sunscreenApplication,
             WatchMessageKey.sunscreenSPF: sunscreenSPF ?? 50,
@@ -217,13 +213,11 @@ final class WatchMainViewModel: ObservableObject {
         Log.info("[Watch] 선크림 도포: SPF \(sunscreenSPF ?? 50)")
     }
     
-    /// 선크림 타이머 중단 (Watch에서)
     func cancelSunscreen() {
         sunscreenAppliedAt = nil
         remainingSeconds = 0
         stopTimer()
         
-        // iPhone에 중단 전송
         let message: [String: Any] = [
             WatchMessageKey.type: WatchMessageKey.TypeValue.sunscreenCancellation,
             WatchMessageKey.timestamp: Date().timeIntervalSince1970
@@ -287,18 +281,21 @@ final class WatchMainViewModel: ObservableObject {
         let type = userInfo[WatchMessageKey.type] as? String
         Log.debug("[Watch] UserInfo 수신: \(type ?? "unknown")")
         
-        if type == WatchMessageKey.TypeValue.userProfile {
+        switch type {
+        case WatchMessageKey.TypeValue.userProfile:
             if let skinType = userInfo[WatchMessageKey.skinType] as? Int {
-                Log.debug("[Watch] 피부 타입 수신: \(skinType)")
+                Log.debug("[Watch] 사용자 피부 타입 수신: \(skinType)")
             }
+        default:
+            break
         }
     }
     
     // MARK: - Data Parsing
     
     private func handleDashboardData(_ data: [String: Any], isFromCache: Bool = false) {
-        if let uv = data[WatchMessageKey.uvIndex] as? Double {
-            currentUVIndex = uv
+        if let uvIndex = data[WatchMessageKey.uvIndex] as? Double {
+            currentUVIndex = uvIndex
         }
         if let sed = data[WatchMessageKey.totalSED] as? Double {
             todayTotalSED = sed
@@ -306,12 +303,8 @@ final class WatchMainViewModel: ObservableObject {
         if let max = data[WatchMessageKey.maxSED] as? Double {
             maxSED = max
         }
-        
-        // 선크림 상태
         if let spfRaw = data[WatchMessageKey.sunscreenSPF] as? Int {
             sunscreenSPF = spfRaw
-        } else {
-            sunscreenSPF = nil
         }
         if let minutes = data[WatchMessageKey.reapplyMinutes] as? Int {
             reapplyIntervalMinutes = minutes
@@ -319,8 +312,6 @@ final class WatchMainViewModel: ObservableObject {
         if let appliedAt = data[WatchMessageKey.sunscreenAppliedAt] as? Double {
             sunscreenAppliedAt = Date(timeIntervalSince1970: appliedAt)
             updateRemainingTime()
-        } else {
-            sunscreenAppliedAt = nil
         }
         
         if !isFromCache {
