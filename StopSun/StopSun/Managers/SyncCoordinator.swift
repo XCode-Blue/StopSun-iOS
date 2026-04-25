@@ -368,13 +368,16 @@ private extension SyncCoordinator {
         let sunscreenHistory = localStorage.loadSunscreenHistory()
         let locationHistory = localStorage.loadLocationHistory()
 
+        var uvCache: [String: Double] = [:]
+
         // 과거 → 오늘 순서로 처리 (오늘이 마지막이어야 todayTotalSED 최종 반영)
         for dayOffset in (0...lookbackDays).reversed() {
             guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
-            await calculateSED(
+            uvCache = await calculateSED(
                 for: date,
                 sunscreenHistory: sunscreenHistory,
-                locationHistory: locationHistory
+                locationHistory: locationHistory,
+                uvCache: uvCache
             )
         }
     }
@@ -386,13 +389,16 @@ private extension SyncCoordinator {
     func calculateSED(
         for date: Date,
         sunscreenHistory: [SunscreenApplication],
-        locationHistory: [LocationRecord]
-    ) async {
+        locationHistory: [LocationRecord],
+        uvCache: [String: Double]
+    ) async -> [String: Double] {
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
         let endOfDay = calendar.isDateInToday(date)
             ? Date()
             : calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+
+        var cache = uvCache
 
         do {
             let timeInDaylightData = try await healthKit.fetchTimeInDaylight(from: startOfDay, to: endOfDay)
@@ -400,7 +406,6 @@ private extension SyncCoordinator {
             var runningTotal = existingRecords.reduce(0) { $0 + $1.receivedSED }
 
             let processedIDs = Set(existingRecords.compactMap(\.healthKitID))
-            var uvCache: [String: Double] = [:]
 
             var newCount = 0
             var totalMinutes = 0
@@ -420,10 +425,10 @@ private extension SyncCoordinator {
                     ?? currentWeather?.location
                     ?? .mockSeoul
 
-                let cacheKey = "\(String(format: "%.2f", locationInfo.latitude)),\(String(format: "%.2f", locationInfo.longitude))-\(calendar.component(.hour, from: data.startTime))"
+                let cacheKey = "\(String(format: "%.2f", locationInfo.latitude)),\(String(format: "%.2f", locationInfo.longitude))-\(date.toAPIDateString)-\(calendar.component(.hour, from: data.startTime))"
 
                 let uvIndex: Double
-                if let cached = uvCache[cacheKey] {
+                if let cached = cache[cacheKey] {
                     uvIndex = cached
                 } else {
                     do {
@@ -432,7 +437,7 @@ private extension SyncCoordinator {
                         Log.error("과거 UV 조회 실패: \(error.localizedDescription)")
                         uvIndex = currentUVIndex
                     }
-                    uvCache[cacheKey] = uvIndex
+                    cache[cacheKey] = uvIndex
                 }
 
                 let sed = SEDCalculator.calculateWithSunscreenHistory(
@@ -478,6 +483,8 @@ private extension SyncCoordinator {
                 self.error = .healthKit(.dataFetchFailed)
             }
         }
+
+        return cache
     }
 }
 
