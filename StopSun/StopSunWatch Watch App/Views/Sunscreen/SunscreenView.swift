@@ -19,7 +19,7 @@ import SwiftUI
 ///
 struct SunscreenTimerView: View {
     
-    @ObservedObject var viewModel: WatchMainViewModel
+    var viewModel: WatchMainViewModel
     
     var body: some View {
         ZStack {
@@ -46,7 +46,9 @@ private extension SunscreenTimerView {
     /// Page 1: 카운트다운 타이머 (기본)
     ///
     struct ActivePager: View {
-        @ObservedObject var viewModel: WatchMainViewModel
+        
+        var viewModel: WatchMainViewModel
+        
         @State private var currentPage: Int = 1
         
         var body: some View {

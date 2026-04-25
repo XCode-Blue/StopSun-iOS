@@ -10,7 +10,7 @@ import SwiftUI
 /// MED 진행률 화면
 struct MEDView: View {
     
-    @ObservedObject var viewModel: WatchMainViewModel
+    var viewModel: WatchMainViewModel
     
     private var level: WarningLevel { viewModel.warningLevel }
     

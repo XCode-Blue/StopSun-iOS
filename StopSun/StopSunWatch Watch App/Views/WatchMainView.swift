@@ -14,9 +14,10 @@ import SwiftUI
 /// - Digital Crown (수직 페이지) → 선크림 타이머
 ///
 struct WatchMainView: View {
-
+    
     @Environment(\.scenePhase) var scenePhase
-    @StateObject var viewModel: WatchMainViewModel
+    @Bindable var viewModel: WatchMainViewModel
+    
     @State private var showingUVI = false
     
     var body: some View {

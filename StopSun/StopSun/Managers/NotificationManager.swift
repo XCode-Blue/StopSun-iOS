@@ -126,7 +126,7 @@ final class NotificationManager: NSObject, NotificationManagerProtocol {
         
         let medCategory = UNNotificationCategory(
             identifier: NotificationCategory.medWarning,
-            actions: [dismissAction],
+            actions: [applyAction, dismissAction],
             intentIdentifiers: [],
             options: []
         )
@@ -150,8 +150,8 @@ final class NotificationManager: NSObject, NotificationManagerProtocol {
         content.body = L10n.Notification.Reapply.body
         content.sound = .default
         content.categoryIdentifier = NotificationCategory.reapply
-        content.interruptionLevel = .timeSensitive
-        
+        content.interruptionLevel = .active
+
         let components = Calendar.current.dateComponents(
             [.year, .month, .day, .hour, .minute, .second],
             from: date
@@ -222,29 +222,33 @@ final class NotificationManager: NSObject, NotificationManagerProtocol {
         case 50:
             content.title = L10n.Notification.MED.title50
             content.body = L10n.Notification.MED.body50
-            content.interruptionLevel = .timeSensitive
-            
+            content.interruptionLevel = .active
+
         case 70:
             content.title = L10n.Notification.MED.title70
             content.body = L10n.Notification.MED.body70
-            content.interruptionLevel = .timeSensitive
-            
+            content.interruptionLevel = .active
+
         case 100:
             content.title = L10n.Notification.MED.title100
             content.body = L10n.Notification.MED.body100
-            content.interruptionLevel = .critical
-            
+            content.interruptionLevel = .active
+
         default:
             return
         }
         
         let identifier = "stopsun.notification.med.\(threshold)"
+        let trigger = UNTimeIntervalNotificationTrigger(
+            timeInterval: 0.1,
+            repeats: false
+        )
         let request = UNNotificationRequest(
             identifier: identifier,
             content: content,
-            trigger: nil // 즉시 발송
+            trigger: trigger
         )
-        
+
         Task {
             do {
                 try await notificationCenter.add(request)
