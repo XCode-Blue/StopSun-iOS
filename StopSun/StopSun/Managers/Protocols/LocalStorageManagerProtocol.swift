@@ -44,6 +44,11 @@ protocol LocalStorageManagerProtocol {
     /// - Parameter spfLevel: 새 SPF 레벨
     /// - Note: 내부에서 NotificationCenter.post 호출
     func updateSunscreenSPF(_ spfLevel: SPFLevel)
+    
+    /// Apple Watch 연동 상태 업데이트
+    ///
+    /// - Parameter isPaired: Watch 페어링 여부
+    func updateHasWatch(_ isPaired: Bool)
 
     /// 사용자 프로필 삭제
     func deleteUserProfile()

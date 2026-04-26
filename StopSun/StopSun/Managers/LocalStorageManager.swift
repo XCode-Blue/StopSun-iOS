@@ -86,6 +86,13 @@ final class LocalStorageManager: LocalStorageManagerProtocol {
         Log.info("Updating SPFLevel to: SPF \(spfLevel.rawValue)")
         saveUserProfile(profile)
     }
+    
+    func updateHasWatch(_ isPaired: Bool) {
+            var profile = loadUserProfileOrDefault()
+            profile.hasWatch = isPaired
+            Log.info("Updating hasWatch to: \(isPaired)")
+            saveUserProfile(profile)
+        }
 
     func deleteUserProfile() {
         userDefaults.removeObject(forKey: profileKey)
