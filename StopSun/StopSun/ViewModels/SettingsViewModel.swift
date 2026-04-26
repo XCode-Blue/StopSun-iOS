@@ -33,8 +33,17 @@ final class SettingsViewModel {
     
     // MARK: - Watch
     
+    /// Watch 연동 확인 결과
+    enum WatchConnectionResult {
+        case alreadyConnected   // 확인 전부터 이미 연결 상태
+        case nowConnected       // 확인 후 새로 연결됨
+        case notPaired          // 페어링된 워치 없음
+    }
+    
     /// Watch 연동 확인 진행 중 여부
     private(set) var isCheckingWatch: Bool = false
+    private(set) var watchConnectionResult: WatchConnectionResult?
+    var showWatchConnectionAlert: Bool = false
     
     // MARK: - Dependencies
     
@@ -93,7 +102,18 @@ final class SettingsViewModel {
         isCheckingWatch = true
         defer { isCheckingWatch = false }
         
+        let wasConnected = hasWatch  // 체크 전 상태 캡처
+        
         await syncCoordinator.checkAndUpdateWatchConnection()
+        
+        // hasWatch는 checkAndUpdateWatchConnection() 완료 후 자동 반영 (@Observable)
+        if hasWatch {
+            watchConnectionResult = wasConnected ? .alreadyConnected : .nowConnected
+        } else {
+            watchConnectionResult = .notPaired
+        }
+        showWatchConnectionAlert = true
+        
         Log.info("Settings: Watch 연동 확인 완료 — \(hasWatch ? "연결됨" : "미연결")")
     }
     

@@ -66,6 +66,13 @@ struct SettingsView: View {
             .sheet(item: $selectedURL) { item in
                 SafariView(url: item.url)
             }
+            .alert(watchAlertTitle, isPresented: $viewModel.showWatchConnectionAlert) {
+                Button(L10n.Button.confirm) {
+                    viewModel.showWatchConnectionAlert = false
+                }
+            } message: {
+                Text(watchAlertMessage)
+            }
         }
     }
     
@@ -309,6 +316,26 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity)
         .padding(.top, 28)
         .padding(.bottom, 40)
+    }
+    
+    // MARK: - Watch Alert Helpers
+    
+    private var watchAlertTitle: String {
+        switch viewModel.watchConnectionResult {
+        case .alreadyConnected: return L10n.Settings.WatchAlert.alreadyConnectedTitle
+        case .nowConnected:     return L10n.Settings.WatchAlert.connectedTitle
+        case .notPaired:        return L10n.Settings.WatchAlert.notPairedTitle
+        case nil:               return ""
+        }
+    }
+    
+    private var watchAlertMessage: String {
+        switch viewModel.watchConnectionResult {
+        case .alreadyConnected: return L10n.Settings.WatchAlert.alreadyConnectedMessage
+        case .nowConnected:     return L10n.Settings.WatchAlert.connectedMessage
+        case .notPaired:        return L10n.Settings.WatchAlert.notPairedMessage
+        case nil:               return ""
+        }
     }
     
     // MARK: - Watch Connection Trailing

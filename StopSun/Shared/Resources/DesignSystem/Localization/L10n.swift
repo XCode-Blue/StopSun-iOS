@@ -468,6 +468,15 @@ enum L10n {
             static var check: String { .localized("settings.watch.check") }
         }
         
+        enum WatchAlert {
+            static var alreadyConnectedTitle: String   { .localized("settings.watch.alert.alreadyConnected.title") }
+            static var alreadyConnectedMessage: String { .localized("settings.watch.alert.alreadyConnected.message") }
+            static var connectedTitle: String          { .localized("settings.watch.alert.connected.title") }
+            static var connectedMessage: String        { .localized("settings.watch.alert.connected.message") }
+            static var notPairedTitle: String          { .localized("settings.watch.alert.notPaired.title") }
+            static var notPairedMessage: String        { .localized("settings.watch.alert.notPaired.message") }
+        }
+        
         enum AppInfo {
             static var privacy: String { .localized("settings.appInfo.privacy") }
             static var support: String { .localized("settings.appInfo.support") }
