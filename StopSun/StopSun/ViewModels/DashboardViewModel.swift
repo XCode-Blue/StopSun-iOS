@@ -17,8 +17,13 @@ import Foundation
 @Observable
 final class DashboardViewModel {
     // MARK: - View State
-    
+
     var currentPage: Int = 0
+
+    /// Watch 미보유 시 MED 자동 추적 불가 → 선크림 타이머 중심 UI
+    var hasWatch: Bool {
+        syncCoordinator.userProfile?.hasWatch ?? true
+    }
     
     /// Watch 미보유 시 MED 자동 추적 불가 → 선크림 타이머 중심 UI
     var hasWatch: Bool {
@@ -129,6 +134,7 @@ final class DashboardViewModel {
         if !hasWatch && currentPage == 0 {
             currentPage = 1
         }
+      
         refreshWeeklyChartItemsIfNeeded()
         
         guard let lastSync = syncCoordinator.lastSyncTime else {
