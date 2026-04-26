@@ -107,6 +107,19 @@ struct SettingsView: View {
                     showHealthKitGuide = true
                 }
             )
+
+            // Watch 미보유 시: 건강 앱에서 일광 시간 수동 기록 안내
+            if !viewModel.hasWatch {
+                Spacer().frame(height: 24)
+
+                settingsRow(
+                    title: L10n.Settings.Daylight.title,
+                    description: L10n.Settings.Daylight.desc,
+                    trailing: linkButton(L10n.Settings.Daylight.open) {
+                        viewModel.openHealthApp()
+                    }
+                )
+            }
         }
         .padding(.horizontal, 20)
     }

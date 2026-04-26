@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>NSUserNotificationUsageDescription</key>
 	<string>선크림 알림을 위해 알림 권한이 필요합니다.</string>
 	<key>UIBackgroundModes</key>

@@ -178,16 +178,18 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
         
         Log.info("동기화 시작")
 
-        // 0. Watch Connectivity 세션 활성화
-        watchConnectivity.activate()
-
-        // 1. 프로필 로드
+        // 0. 프로필 로드 (Watch 보유 여부 판단을 위해 가장 먼저 실행)
         loadUserProfile()
+
+        // 1. Watch Connectivity 세션 활성화 (Watch 보유 시에만)
+        if userProfile?.hasWatch != false {
+            watchConnectivity.activate()
+        }
         
         // 2. 저장된 선크림 상태 로드
         loadActiveSunscreen()
 
-        // 3. HealthKit Background Delivery 설정
+        // 3. HealthKit Background Delivery 설정 (Watch 미보유 시에도 수동 입력 감지 필요)
         if healthKit.isAuthorized {
             do {
                 try await healthKit.enableBackgroundDelivery()
@@ -262,8 +264,10 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
         await calculateRecentSED()
         loadActiveSunscreen()
         checkWarningLevelAndNotify()
-        sendDashboardToWatch()
-        
+        if userProfile?.hasWatch != false {
+            sendDashboardToWatch()
+        }
+
         Log.info("새로고침 완료")
     }
     
@@ -289,8 +293,10 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
             }
         }
         
-        watchConnectivity.sendSunscreenApplication(application)
-        sendDashboardToWatch()
+        if userProfile?.hasWatch != false {
+            watchConnectivity.sendSunscreenApplication(application)
+            sendDashboardToWatch()
+        }
         
         liveActivity.startActivity(
             appliedAt: application.appliedAt,

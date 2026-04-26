@@ -17,8 +17,13 @@ import Foundation
 @Observable
 final class DashboardViewModel {
     // MARK: - View State
-    
+
     var currentPage: Int = 0
+
+    /// Watch 미보유 시 MED 자동 추적 불가 → 선크림 타이머 중심 UI
+    var hasWatch: Bool {
+        syncCoordinator.userProfile?.hasWatch ?? true
+    }
     
     /// 캐싱된 날짜 문자열 (하루에 한 번만 갱신)
     private(set) var formattedDate: String = ""
@@ -119,6 +124,11 @@ final class DashboardViewModel {
 
     func onAppear() async {
         formattedDate = Date().toDayWithWeekdayString
+      
+        if !hasWatch && currentPage == 0 {
+            currentPage = 1
+        }
+      
         refreshWeeklyChartItemsIfNeeded()
 
         guard let lastSync = syncCoordinator.lastSyncTime else {
