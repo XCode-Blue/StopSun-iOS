@@ -66,7 +66,7 @@ protocol NotificationManagerProtocol: AnyObject {
     ///
     /// - Parameter percentage: 현재 MED 비율 (0.0 ~ 1.0+)
     /// - Note: 30%, 50%, 70%, 100% 임계값에서만 알림 발송 (WarningLevel + 한계 도달)
-    func sendMEDWarning(percentage: Double)
+    func sendMEDWarning(percentage: Double) async
     
     /// MED 경고 발송 이력 초기화
     ///

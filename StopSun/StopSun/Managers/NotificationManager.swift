@@ -191,7 +191,7 @@ final class NotificationManager: NSObject, NotificationManagerProtocol {
     
     // MARK: - MED Warning
     
-    func sendMEDWarning(percentage: Double) {
+    func sendMEDWarning(percentage: Double) async {
         let threshold: Int
         if percentage >= 1.0 {
             threshold = 100

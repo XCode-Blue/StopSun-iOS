@@ -208,7 +208,7 @@ final class MockNotificationManager: NotificationManagerProtocol {
         try await scheduleReapplyReminder(at: snoozeDate)
     }
     
-    func sendMEDWarning(percentage: Double) {
+    func sendMEDWarning(percentage: Double) async {
         sentMEDWarnings.append(percentage)
     }
     
