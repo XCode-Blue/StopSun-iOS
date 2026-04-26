@@ -453,11 +453,17 @@ enum L10n {
             static var title: String { .localized("settings.spf.title") }
             static var desc: String { .localized("settings.spf.desc") }
         }
-
+        
         enum Daylight {
             static var title: String { .localized("settings.daylight.title") }
             static var desc: String { .localized("settings.daylight.desc") }
             static var open: String { .localized("settings.daylight.open") }
+        }
+        
+        enum WatchSetting {
+            static var title: String { .localized("settings.watch.title") }
+            static var desc: String { .localized("settings.watch.desc") }
+            static var check: String { .localized("settings.watch.check") }
         }
         
         enum AppInfo {
@@ -465,7 +471,7 @@ enum L10n {
             static var support: String { .localized("settings.appInfo.support") }
         }
     }
-
+    
     // MARK: - Timer
     
     enum Timer {

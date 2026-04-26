@@ -31,6 +31,11 @@ final class SettingsViewModel {
     private(set) var skinType: SkinType
     private(set) var spfLevel: SPFLevel
     
+    // MARK: - Watch
+    
+    /// Watch 연동 확인 진행 중 여부
+    private(set) var isCheckingWatch: Bool = false
+    
     // MARK: - Dependencies
     
     private let syncCoordinator: any SyncCoordinatorProtocol
@@ -79,6 +84,19 @@ final class SettingsViewModel {
         Log.debug("Settings: Profile refreshed")
     }
     
+    /// Apple Watch 연동 확인
+    ///
+    /// 온보딩과 동일하게 `activateAndWait()` → `isPaired` 체크 후
+    /// `UserProfile.hasWatch`에 저장합니다.
+    func checkWatchConnection() async {
+        guard !isCheckingWatch else { return }
+        isCheckingWatch = true
+        defer { isCheckingWatch = false }
+        
+        await syncCoordinator.checkAndUpdateWatchConnection()
+        Log.info("Settings: Watch 연동 확인 완료 — \(hasWatch ? "연결됨" : "미연결")")
+    }
+    
     // MARK: - Display Helpers
     
     var skinTypeDisplayText: String { skinType.title }
@@ -105,13 +123,13 @@ final class SettingsViewModel {
     var hasWatch: Bool {
         syncCoordinator.userProfile?.hasWatch ?? true
     }
-
+    
     /// 설정 앱으로 이동
     func openAppSettings() {
         guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
         UIApplication.shared.open(url)
     }
-
+    
     /// 건강 앱 (일광 시간) 열기
     func openHealthApp() {
         guard let url = URL(string: "x-apple-health://") else { return }

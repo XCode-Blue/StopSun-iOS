@@ -2832,6 +2832,27 @@
         }
       }
     },
+    "settings.watch.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Apple Watch Connection" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "애플 워치 연동 확인" } }
+      }
+    },
+    "settings.watch.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Check and save your Apple Watch connection status." } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "애플 워치와의 연동 상태를 확인하고 저장해요." } }
+      }
+    },
+    "settings.watch.check" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Check" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "확인" } }
+      }
+    },
     "settings.title" : {
       "comment" : "설정 화면 타이틀",
       "extractionState" : "manual",

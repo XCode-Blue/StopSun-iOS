@@ -39,10 +39,10 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
     
     /// 마지막 알림 전송된 경고 레벨 (중복 알림 방지)
     private var lastNotifiedWarningLevel: WarningLevel = .safe
-
+    
     /// 날씨 캐시 TTL (초)
     private static let weatherCacheTTL: TimeInterval = 900  // 15분
-
+    
     // MARK: - Observer Tasks
     @ObservationIgnored
     nonisolated(unsafe) private var observerTasks: [Task<Void, Never>] = []
@@ -56,9 +56,9 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
     private let notification: any NotificationManagerProtocol
     private let watchConnectivity: any WatchConnectivityManagerProtocol
     private let liveActivity: any LiveActivityManagerProtocol
-
+    
     // MARK: - Initializer
-
+    
     init(
         healthKit: any HealthKitManagerProtocol,
         weather: any WeatherManagerProtocol,
@@ -177,18 +177,18 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
         }
         
         Log.info("동기화 시작")
-
+        
         // 0. Watch Connectivity 세션 활성화 (Watch 보유 시에만)
         if userProfile?.hasWatch != false {
             watchConnectivity.activate()
         }
-
+        
         // 1. 프로필 로드
         loadUserProfile()
         
         // 2. 저장된 선크림 상태 로드
         loadActiveSunscreen()
-
+        
         // 3. HealthKit Background Delivery 설정 (Watch 미보유 시에도 수동 입력 감지 필요)
         if healthKit.isAuthorized {
             do {
@@ -336,6 +336,16 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
         Log.info("선호 SPF 변경: \(spfLevel.displayTitle)")
     }
     
+    func checkAndUpdateWatchConnection() async {
+        await watchConnectivity.activateAndWait()
+        
+        let isPaired = watchConnectivity.isPaired
+        localStorage.updateHasWatch(isPaired)
+        userProfile?.hasWatch = isPaired
+        
+        Log.info("Watch 연동 확인 — \(isPaired ? "연결됨" : "미연결")")
+    }
+    
     // MARK: - App Lifecycle
     
     func handleAppDidBecomeActive() {
@@ -366,12 +376,12 @@ private extension SyncCoordinator {
         
         // 첫 sync → 7일 (차트용), 이후 → 3일
         let lookbackDays = lastSyncTime == nil ? 6 : 2
-
+        
         let sunscreenHistory = localStorage.loadSunscreenHistory()
         let locationHistory = localStorage.loadLocationHistory()
-
+        
         var uvCache: [String: Double] = [:]
-
+        
         // 과거 → 오늘 순서로 처리 (오늘이 마지막이어야 todayTotalSED 최종 반영)
         for dayOffset in (0...lookbackDays).reversed() {
             guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
@@ -397,38 +407,38 @@ private extension SyncCoordinator {
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
         let endOfDay = calendar.isDateInToday(date)
-            ? Date()
-            : calendar.date(byAdding: .day, value: 1, to: startOfDay)!
-
+        ? Date()
+        : calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+        
         var cache = uvCache
-
+        
         do {
             let timeInDaylightData = try await healthKit.fetchTimeInDaylight(from: startOfDay, to: endOfDay)
             let existingRecords = localStorage.loadExposureRecords(for: date)
             var runningTotal = existingRecords.reduce(0) { $0 + $1.receivedSED }
-
+            
             let processedIDs = Set(existingRecords.compactMap(\.healthKitID))
-
+            
             var newCount = 0
             var totalMinutes = 0
-
+            
             for data in timeInDaylightData {
                 totalMinutes += Int(data.endTime.timeIntervalSince(data.startTime) / 60)
-
+                
                 if processedIDs.contains(data.id) {
                     continue
                 }
-
+                
                 let locationRecord = locationHistory.last { record in
                     abs(record.timestamp.timeIntervalSince(data.startTime)) < 600
                 }
-
+                
                 let locationInfo = locationRecord?.locationInfo
-                    ?? currentWeather?.location
-                    ?? .mockSeoul
-
+                ?? currentWeather?.location
+                ?? .mockSeoul
+                
                 let cacheKey = "\(String(format: "%.2f", locationInfo.latitude)),\(String(format: "%.2f", locationInfo.longitude))-\(date.toAPIDateString)-\(calendar.component(.hour, from: data.startTime))"
-
+                
                 let uvIndex: Double
                 if let cached = cache[cacheKey] {
                     uvIndex = cached
@@ -441,16 +451,16 @@ private extension SyncCoordinator {
                     }
                     cache[cacheKey] = uvIndex
                 }
-
+                
                 let sed = SEDCalculator.calculateWithSunscreenHistory(
                     start: data.startTime,
                     end: data.endTime,
                     uvIndex: uvIndex,
                     sunscreenHistory: sunscreenHistory
                 )
-
+                
                 let spf = sunscreenHistory.first { $0.isActive(at: data.startTime) }?.spfLevel ?? .none
-
+                
                 let record = UVExposureRecord(
                     healthKitID: data.id,
                     startTime: data.startTime,
@@ -459,23 +469,23 @@ private extension SyncCoordinator {
                     appliedSPF: spf,
                     receivedSED: sed
                 )
-
+                
                 localStorage.saveExposureRecord(record)
-
+                
                 runningTotal += sed
                 newCount += 1
             }
-
+            
             if calendar.isDateInToday(date) {
                 todayTotalSED = runningTotal
             }
-
+            
             var dailyRecord = localStorage.loadDailyMEDRecord(for: date) ?? DailyMEDRecord(date: date)
             dailyRecord.totalSED = runningTotal
             dailyRecord.recordCount = existingRecords.count + newCount
             dailyRecord.totalExposureMinutes = totalMinutes
             localStorage.saveDailyMEDRecord(dailyRecord)
-
+            
             if newCount > 0 {
                 Log.info("\(date.toDateString) SED 계산: \(String(format: "%.2f", runningTotal)), 새로 처리 \(newCount)건")
             }
@@ -485,7 +495,7 @@ private extension SyncCoordinator {
                 self.error = .healthKit(.dataFetchFailed)
             }
         }
-
+        
         return cache
     }
 }
@@ -707,13 +717,13 @@ private extension SyncCoordinator {
     /// 과거 UV 조회 시 위치 정보를 활용할 수 있도록 합니다.
     /// 날씨가 한 번도 성공하지 못한 경우에만 서울 기본값으로 대체합니다.
     func fetchCurrentLocationAndWeather() async {
-
+        
         if let weather = currentWeather,
            Date().timeIntervalSince(weather.fetchedAt) < Self.weatherCacheTTL {
             Log.debug("날씨 캐시 유효 (\(Int(Date().timeIntervalSince(weather.fetchedAt)))초 경과), API 스킵")
             return
         }
-
+        
         do {
             let locationInfo = try await location.getCurrentLocation()
             
