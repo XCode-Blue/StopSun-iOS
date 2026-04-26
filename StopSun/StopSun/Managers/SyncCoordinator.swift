@@ -279,6 +279,7 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
         )
         
         localStorage.saveSunscreenApplication(application)
+        localStorage.clearManualSunscreenStopTime()
         activeSunscreen = application
         
         let reapplyTime = application.nextReapplyTime
@@ -307,6 +308,7 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
     
     func stopSunscreen() {
         activeSunscreen = nil
+        localStorage.saveManualSunscreenStopTime(Date())
         notification.cancelReapplyReminder()
         liveActivity.endActivity()
         Log.info("선크림 타이머 종료")
@@ -704,10 +706,18 @@ private extension SyncCoordinator {
     }
     
     func loadActiveSunscreen() {
+        let stopTime = localStorage.loadManualSunscreenStopTime()
+        
         activeSunscreen = localStorage.loadSunscreenHistory()
             .filter { $0.isActive(at: Date()) }
+            .filter { record in
+                // 수동 종료 시각 이후에 도포된 기록만 유효
+                guard let stopTime else { return true }
+                return record.appliedAt > stopTime
+            }
             .sorted { $0.appliedAt > $1.appliedAt }
             .first
+        
         Log.debug("활성 선크림: \(activeSunscreen != nil ? "있음" : "없음")")
     }
     

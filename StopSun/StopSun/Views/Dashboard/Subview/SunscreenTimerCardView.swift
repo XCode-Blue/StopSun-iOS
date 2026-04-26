@@ -9,7 +9,7 @@ import SwiftUI
 
 /// 선크림 타이머 카드
 ///
-/// - 비활성 상태: "선크림을 도포해주세요" + 도포 버튼
+/// - 비활성 상태: "선크림을 다시 바를 수 있도록 알려줄게요" + 도포 버튼
 /// - 활성 상태: 남은 시간 카운트다운 + 종료 버튼
 struct SunscreenTimerCardView: View {
 
@@ -26,7 +26,7 @@ struct SunscreenTimerCardView: View {
                     .foregroundStyle(.key00)
 
                 Text(isTimerActive ? remainingTime : L10n.Sunscreen.Card.inactive)
-                    .font(.ssFont(.SB5))
+                    .font(isTimerActive ? .ssFont(.SB5) : .ssFont(.SB1))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.key00)
             }

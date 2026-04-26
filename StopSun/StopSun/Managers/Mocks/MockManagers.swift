@@ -130,6 +130,21 @@ final class MockLocalStorageManager: LocalStorageManagerProtocol {
         sunscreenHistory.append(application)
     }
     func deleteSunscreen() { sunscreenHistory.removeAll() }
+    
+    private var manualSunscreenStopTime: Date?
+    
+    func saveManualSunscreenStopTime(_ date: Date) {
+        manualSunscreenStopTime = date
+    }
+    
+    func loadManualSunscreenStopTime() -> Date? {
+        return manualSunscreenStopTime
+    }
+    
+    func clearManualSunscreenStopTime() {
+        manualSunscreenStopTime = nil
+    }
+    
     func isSunscreenActive() -> Bool {
         guard let current = sunscreenHistory.last else { return false }
         return current.isActive(at: Date())
