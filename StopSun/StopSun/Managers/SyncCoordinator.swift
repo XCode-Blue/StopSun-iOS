@@ -365,6 +365,16 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
         await refresh()
     }
     
+    func fetchDaylightRecords(for date: Date) async throws -> [TimeInDaylight] {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: date)
+        // 오늘이면 현재 시각까지만, 과거 날짜면 해당 날 23:59:59까지
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: start) ?? start
+        let end = min(endOfDay, Date())
+        
+        return try await healthKit.fetchTimeInDaylight(from: start, to: end)
+    }
+    
     func checkAndUpdateWatchConnection() async {
         await watchConnectivity.activateAndWait()
         

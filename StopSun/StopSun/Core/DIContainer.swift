@@ -45,7 +45,7 @@ final class DIContainer {
         let watchConnectivity = WatchConnectivityManager()
         let liveActivity = LiveActivityManager()
         let errorHandler = ErrorHandler()
-
+        
         let syncCoordinator = SyncCoordinator(
             healthKit: healthKit,
             weather: weather,
@@ -55,14 +55,14 @@ final class DIContainer {
             watchConnectivity: watchConnectivity,
             liveActivity: liveActivity
         )
-
+        
         let permissionManager = PermissionManager(
             notification: notification,
             healthKit: healthKit,
             location: location
         )
         let router = Router()
-
+        
         return DIContainer(
             healthKit: healthKit,
             weather: weather,
@@ -77,7 +77,7 @@ final class DIContainer {
             errorHandler: errorHandler
         )
     }()
-
+    
     // MARK: - Preview
 #if DEBUG
     @MainActor
@@ -90,7 +90,7 @@ final class DIContainer {
         let watchConnectivity = MockWatchConnectivityManager()
         let liveActivity = MockLiveActivityManager()
         let errorHandler = ErrorHandler()
-
+        
         let syncCoordinator = SyncCoordinator(
             healthKit: healthKit,
             weather: weather,
@@ -100,15 +100,15 @@ final class DIContainer {
             watchConnectivity: watchConnectivity,
             liveActivity: liveActivity
         )
-
+        
         let permissionManager = PermissionManager(
             notification: notification,
             healthKit: healthKit,
             location: location
         )
-
+        
         let router = Router()
-
+        
         return DIContainer(
             healthKit: healthKit,
             weather: weather,
@@ -138,9 +138,9 @@ final class DIContainer {
     let permissionManager: PermissionManager
     let errorHandler: ErrorHandler
     let router: Router
-
+    
     // MARK: - Initializer
-
+    
     private init(
         healthKit: any HealthKitManagerProtocol,
         weather: any WeatherManagerProtocol,
@@ -187,6 +187,11 @@ final class DIContainer {
             syncCoordinator: syncCoordinator,
             permissionManager: permissionManager
         )
+    }
+    
+    @MainActor
+    func makeDaylightRecordViewModel() -> DaylightRecordViewModel {
+        DaylightRecordViewModel(syncCoordinator: syncCoordinator)
     }
     
     @MainActor

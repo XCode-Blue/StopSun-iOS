@@ -155,4 +155,26 @@ final class SettingsViewModel {
         guard let url = URL(string: "x-apple-health://") else { return }
         UIApplication.shared.open(url)
     }
+    
+    // MARK: - Daylight Record
+    
+    /// 프로필에 저장된 SPF (일광 기록 화면 기본값)
+    var defaultSPFLevel: SPFLevel {
+        syncCoordinator.userProfile?.spfLevel ?? .spf30
+    }
+    
+    /// HealthKit 쓰기 권한 요청
+    func requestHealthKitWriteAuthorization() async throws {
+        try await syncCoordinator.requestHealthKitWriteAuthorization()
+    }
+    
+    /// 일광 노출 시간 기록 후 SED 재계산
+    func recordDaylightExposure(start: Date, end: Date, sunscreenSPF: SPFLevel?) async throws {
+        try await syncCoordinator.recordDaylightExposure(
+            start: start,
+            end: end,
+            sunscreenSPF: sunscreenSPF
+        )
+        Log.info("Settings: 일광 노출 기록 완료")
+    }
 }

@@ -124,18 +124,21 @@ struct SettingsView: View {
                 trailing: watchConnectionTrailing
             )
             
-            // Watch 미보유 시: 건강 앱에서 일광 시간 수동 기록 안내
-            if !viewModel.hasWatch {
-                Spacer().frame(height: 24)
-                
+            // 건강 앱에서 일광 시간 수동 기록 안내
+            Spacer().frame(height: 24)
+            
+            NavigationLink {
+                DaylightRecordView(
+                    viewModel: DIContainer.shared.makeDaylightRecordViewModel()
+                )
+            } label: {
                 settingsRow(
                     title: L10n.Settings.Daylight.title,
                     description: L10n.Settings.Daylight.desc,
-                    trailing: linkButton(L10n.Settings.Daylight.open) {
-                        viewModel.openHealthApp()
-                    }
+                    trailing: navigationValue(L10n.Settings.Daylight.record)
                 )
             }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, 20)
     }

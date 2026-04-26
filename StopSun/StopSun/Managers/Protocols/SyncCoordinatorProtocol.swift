@@ -100,4 +100,13 @@ protocol SyncCoordinatorProtocol {
     ///   - end: 일광 노출 종료 시각
     ///   - sunscreenSPF: 도포한 SPF (없으면 nil)
     func recordDaylightExposure(start: Date, end: Date, sunscreenSPF: SPFLevel?) async throws
+    
+    /// 특정 날짜의 일광 노출 기록 조회
+    ///
+    /// HealthKit에서 해당 날짜 00:00 ~ 23:59:59 범위의
+    /// TimeInDaylight 샘플을 조회합니다.
+    ///
+    /// - Parameter date: 조회할 날짜
+    /// - Returns: 해당 날짜의 TimeInDaylight 배열 (시작 시각 오름차순)
+    func fetchDaylightRecords(for date: Date) async throws -> [TimeInDaylight]
 }
