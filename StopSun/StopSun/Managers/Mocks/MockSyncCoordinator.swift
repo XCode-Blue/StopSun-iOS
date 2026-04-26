@@ -122,6 +122,31 @@ final class MockSyncCoordinator: SyncCoordinatorProtocol {
         userProfile?.spfLevel = spfLevel
     }
     
+    func requestHealthKitWriteAuthorization() async throws {}
+    
+    func recordDaylightExposure(start: Date, end: Date, sunscreenSPF: SPFLevel?) async throws {
+        if let spf = sunscreenSPF {
+            let application = SunscreenApplication(
+                spfLevel: spf,
+                appliedAt: start,
+                reapplyIntervalMinutes: spf.recommendedReapplicationMinutes
+            )
+            activeSunscreen = application
+            sunscreenHistory.append(application)
+        }
+        
+        let sed = SEDCalculator.calculateWithSunscreenHistory(
+            start: start,
+            end: end,
+            uvIndex: currentUVIndex > 0 ? currentUVIndex : 3.0,
+            sunscreenHistory: sunscreenHistory
+        )
+        todayTotalSED += sed
+        
+        let minutes = Int(end.timeIntervalSince(start) / 60)
+        Log.debug("Mock 일광 기록: \(minutes)분, SPF: \(sunscreenSPF?.displayTitle ?? "없음"), SED +\(String(format: "%.3f", sed))")
+    }
+    
     func checkAndUpdateWatchConnection() async {
         userProfile?.hasWatch = true
         Log.debug("Mock Watch 연동 확인 — 연결됨")

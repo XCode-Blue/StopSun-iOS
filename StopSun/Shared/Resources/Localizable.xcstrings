@@ -541,6 +541,24 @@
         }
       }
     },
+    "error.healthKit.saveFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to save data to Health. Please try again."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "건강 앱에 데이터를 저장하지 못했어요. 다시 시도해주세요."
+          }
+        }
+      }
+    }
+    ,
     "error.location.authorizationDenied" : {
       "comment" : "위치 권한 거부",
       "extractionState" : "manual",
@@ -2539,7 +2557,7 @@
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "'일광 시간' 읽기를 허용해요."
+            "value" : "'일광 시간' 쓰기 및 읽기를 허용해요."
           }
         }
       }

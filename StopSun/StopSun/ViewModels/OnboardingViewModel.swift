@@ -208,7 +208,7 @@ final class OnboardingViewModel {
         
         // 1. HealthKit
         do {
-            try await healthKit.requestAuthorization()
+            try await healthKit.requestWriteAuthorization()
             Log.info("HealthKit 권한 요청 완료")
         } catch {
             Log.warning("HealthKit 권한 요청 에러 (계속 진행): \(error)")

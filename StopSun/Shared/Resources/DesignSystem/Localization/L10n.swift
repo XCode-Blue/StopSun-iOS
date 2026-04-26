@@ -308,6 +308,7 @@ enum L10n {
             static var authorizationDenied: String { .localized("error.healthKit.authorizationDenied") }
             static var dataFetchFailed: String { .localized("error.healthKit.dataFetchFailed") }
             static var backgroundDeliveryFailed: String { .localized("error.healthKit.backgroundDeliveryFailed") }
+            static var saveFailed: String { .localized("error.healthKit.saveFailed") }
         }
         
         /// 위치 에러
