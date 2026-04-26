@@ -3318,6 +3318,27 @@
         }
       }
     },
+    "sunscreen.card.inactive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Time to apply sunscreen" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "선크림을 도포해주세요" } }
+      }
+    },
+    "sunscreen.card.start" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Apply Sunscreen" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "선크림 도포" } }
+      }
+    },
+    "sunscreen.card.stop" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Stop Timer" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "타이머 종료" } }
+      }
+    },
     "sunscreen.effectiveness.excellent" : {
       "comment" : "선크림 효과 상태: 매우 좋음 (80-100%)",
       "extractionState" : "manual",

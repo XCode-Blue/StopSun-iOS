@@ -389,8 +389,10 @@ enum L10n {
         
         /// 타이머 카드
         enum Card {
-            /// "선크림 타이머를\n워치에서 작동시켜주세요"
             static var watchPrompt: String { .localized("sunscreen.card.watchPrompt") }
+            static var inactive: String { .localized("sunscreen.card.inactive") }
+            static var start: String { .localized("sunscreen.card.start") }
+            static var stop: String { .localized("sunscreen.card.stop") }
         }
     }
     
