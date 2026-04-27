@@ -240,8 +240,8 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
             )
         }
         // 8. 경고 레벨 체크
-        checkWarningLevelAndNotify()
-        
+        await checkWarningLevelAndNotify()
+
         Log.info("동기화 완료")
         NotificationCenter.default.post(name: .syncDidComplete, object: nil)
     }
@@ -268,7 +268,9 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
         await fetchCurrentLocationAndWeather()
         await calculateRecentSED()
         loadActiveSunscreen()
-        checkWarningLevelAndNotify()
+        
+        await checkWarningLevelAndNotify()
+        
         if userProfile?.hasWatch != false {
             sendDashboardToWatch()
         }
@@ -327,8 +329,8 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
         localStorage.updateSkinType(skinType)
         userProfile?.skinType = skinType
         
-        checkWarningLevelAndNotify()
-        
+        Task { await checkWarningLevelAndNotify() }
+
         if let profile = userProfile {
             watchConnectivity.sendUserProfile(profile)
         }
@@ -638,7 +640,7 @@ private extension SyncCoordinator {
     func handleHealthKitDataUpdate() async {
         Log.debug("HealthKit 데이터 업데이트")
         await calculateRecentSED()
-        checkWarningLevelAndNotify()
+        await checkWarningLevelAndNotify()
     }
     
     func handleDayChanged() async {
@@ -649,7 +651,7 @@ private extension SyncCoordinator {
     func handleTimerStopped() async {
         Log.debug("타이머 정지됨 - SED 재계산")
         await calculateRecentSED()
-        checkWarningLevelAndNotify()
+        await checkWarningLevelAndNotify()
     }
     
     /// 푸시 알림에서 "바르기" 버튼 탭
@@ -677,10 +679,10 @@ private extension SyncCoordinator {
 
 private extension SyncCoordinator {
     
-    func checkWarningLevelAndNotify() {
+    func checkWarningLevelAndNotify() async {
         // 푸시 알림은 항상 호출 (NotificationManager가 자체 중복 방지)
-        notification.sendMEDWarning(percentage: todaySEDProgress)
-        
+        await notification.sendMEDWarning(percentage: todaySEDProgress)
+
         // Live Activity는 항상 현재 레벨 반영
         let newLevel = warningLevel
         liveActivity.updateWarningLevel(newLevel, progress: todaySEDProgress)
