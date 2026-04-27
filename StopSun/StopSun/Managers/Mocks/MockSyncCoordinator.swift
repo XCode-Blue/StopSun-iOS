@@ -122,6 +122,11 @@ final class MockSyncCoordinator: SyncCoordinatorProtocol {
         userProfile?.spfLevel = spfLevel
     }
     
+    func checkAndUpdateWatchConnection() async {
+        userProfile?.hasWatch = true
+        Log.debug("Mock Watch 연동 확인 — 연결됨")
+    }
+    
     // MARK: - App Lifecycle
     
     func handleAppDidBecomeActive() {

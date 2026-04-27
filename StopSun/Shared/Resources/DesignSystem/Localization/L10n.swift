@@ -389,8 +389,10 @@ enum L10n {
         
         /// 타이머 카드
         enum Card {
-            /// "선크림 타이머를\n워치에서 작동시켜주세요"
             static var watchPrompt: String { .localized("sunscreen.card.watchPrompt") }
+            static var inactive: String { .localized("sunscreen.card.inactive") }
+            static var start: String { .localized("sunscreen.card.start") }
+            static var stop: String { .localized("sunscreen.card.stop") }
         }
     }
     
@@ -453,11 +455,26 @@ enum L10n {
             static var title: String { .localized("settings.spf.title") }
             static var desc: String { .localized("settings.spf.desc") }
         }
-
+        
         enum Daylight {
             static var title: String { .localized("settings.daylight.title") }
             static var desc: String { .localized("settings.daylight.desc") }
             static var open: String { .localized("settings.daylight.open") }
+        }
+        
+        enum WatchSetting {
+            static var title: String { .localized("settings.watch.title") }
+            static var desc: String { .localized("settings.watch.desc") }
+            static var check: String { .localized("settings.watch.check") }
+        }
+        
+        enum WatchAlert {
+            static var alreadyConnectedTitle: String   { .localized("settings.watch.alert.alreadyConnected.title") }
+            static var alreadyConnectedMessage: String { .localized("settings.watch.alert.alreadyConnected.message") }
+            static var connectedTitle: String          { .localized("settings.watch.alert.connected.title") }
+            static var connectedMessage: String        { .localized("settings.watch.alert.connected.message") }
+            static var notPairedTitle: String          { .localized("settings.watch.alert.notPaired.title") }
+            static var notPairedMessage: String        { .localized("settings.watch.alert.notPaired.message") }
         }
         
         enum AppInfo {
@@ -465,7 +482,7 @@ enum L10n {
             static var support: String { .localized("settings.appInfo.support") }
         }
     }
-
+    
     // MARK: - Timer
     
     enum Timer {

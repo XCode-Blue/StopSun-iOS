@@ -66,6 +66,13 @@ struct SettingsView: View {
             .sheet(item: $selectedURL) { item in
                 SafariView(url: item.url)
             }
+            .alert(watchAlertTitle, isPresented: $viewModel.showWatchConnectionAlert) {
+                Button(L10n.Button.confirm) {
+                    viewModel.showWatchConnectionAlert = false
+                }
+            } message: {
+                Text(watchAlertMessage)
+            }
         }
     }
     
@@ -107,11 +114,20 @@ struct SettingsView: View {
                     showHealthKitGuide = true
                 }
             )
-
+            
+            Spacer().frame(height: 24)
+            
+            // Apple Watch 연동 확인
+            settingsRow(
+                title: L10n.Settings.WatchSetting.title,
+                description: L10n.Settings.WatchSetting.desc,
+                trailing: watchConnectionTrailing
+            )
+            
             // Watch 미보유 시: 건강 앱에서 일광 시간 수동 기록 안내
             if !viewModel.hasWatch {
                 Spacer().frame(height: 24)
-
+                
                 settingsRow(
                     title: L10n.Settings.Daylight.title,
                     description: L10n.Settings.Daylight.desc,
@@ -271,8 +287,8 @@ struct SettingsView: View {
             
             SSButton(
                 healthKitGuideStep < steps.count - 1
-                    ? L10n.Button.next
-                    : L10n.Button.confirm,
+                ? L10n.Button.next
+                : L10n.Button.confirm,
                 style: .primary
             ) {
                 if healthKitGuideStep < steps.count - 1 {
@@ -300,6 +316,46 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity)
         .padding(.top, 28)
         .padding(.bottom, 40)
+    }
+    
+    // MARK: - Watch Alert Helpers
+    
+    private var watchAlertTitle: String {
+        switch viewModel.watchConnectionResult {
+        case .alreadyConnected: return L10n.Settings.WatchAlert.alreadyConnectedTitle
+        case .nowConnected:     return L10n.Settings.WatchAlert.connectedTitle
+        case .notPaired:        return L10n.Settings.WatchAlert.notPairedTitle
+        case nil:               return ""
+        }
+    }
+    
+    private var watchAlertMessage: String {
+        switch viewModel.watchConnectionResult {
+        case .alreadyConnected: return L10n.Settings.WatchAlert.alreadyConnectedMessage
+        case .nowConnected:     return L10n.Settings.WatchAlert.connectedMessage
+        case .notPaired:        return L10n.Settings.WatchAlert.notPairedMessage
+        case nil:               return ""
+        }
+    }
+    
+    // MARK: - Watch Connection Trailing
+    
+    @ViewBuilder
+    private var watchConnectionTrailing: some View {
+        if viewModel.isCheckingWatch {
+            ProgressView()
+                .tint(Color.key00)
+        } else {
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(viewModel.hasWatch ? Color.gage00 : Color.text03)
+                    .frame(width: 6, height: 6)
+                
+                linkButton(L10n.Settings.WatchSetting.check) {
+                    Task { await viewModel.checkWatchConnection() }
+                }
+            }
+        }
     }
     
     // MARK: - Reusable Components
