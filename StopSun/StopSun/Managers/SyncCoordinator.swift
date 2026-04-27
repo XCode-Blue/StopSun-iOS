@@ -178,11 +178,6 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
         
         Log.info("동기화 시작")
         
-        // 0. Watch Connectivity 세션 활성화 (Watch 보유 시에만)
-        if userProfile?.hasWatch != false {
-            watchConnectivity.activate()
-        }
-        
         // 1. 프로필 로드
         loadUserProfile()
 
