@@ -78,4 +78,10 @@ protocol SyncCoordinatorProtocol {
     ///
     /// - Parameter spfLevel: 새 SPF 레벨
     func updateSunScreenSPF(_ spfLevel: SPFLevel)
+    
+    /// Apple Watch 연동 상태 확인 및 UserProfile 저장
+    ///
+    /// 온보딩과 동일하게 `activateAndWait()` 후 `isPaired`를 체크하고
+    /// 결과를 `UserProfile.hasWatch`에 반영합니다.
+    func checkAndUpdateWatchConnection() async
 }

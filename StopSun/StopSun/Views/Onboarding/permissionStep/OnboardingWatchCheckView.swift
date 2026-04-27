@@ -13,7 +13,7 @@ import SwiftUI
 /// - "네, 보유 중이에요" → `WCSession.isPaired` 확인
 ///   - 페어링됨 → Step 2 이동
 ///   - 미감지 → Alert "기기 모델을 확인해주세요"
-/// - "아니오, 없어요" → Alert "Apple Watch 보유를 권장해요!" (진행 차단)
+/// - "아니오, 없어요" → Alert "Apple Watch 보유를 권장해요!" → 확인 시 Step 2 이동
 ///
 struct OnboardingWatchCheckView: View {
     
@@ -23,9 +23,10 @@ struct OnboardingWatchCheckView: View {
     @Binding var showAlert: Bool
     
     // MARK: - Actions Up
-    
+
     let onHasWatch: () -> Void
     let onNoWatch: () -> Void
+    let onContinueWithoutWatch: () -> Void
     
     // MARK: - Body
     
@@ -91,7 +92,9 @@ struct OnboardingWatchCheckView: View {
             Alert(
                 title: Text(L10n.Onboarding.Watch.Alert.noWatchTitle),
                 message: Text(L10n.Onboarding.Watch.Alert.noWatchMessage),
-                dismissButton: .default(Text(L10n.Button.confirm))
+                dismissButton: .default(Text(L10n.Button.confirm)) {
+                    onContinueWithoutWatch()
+                }
             )
         case .notPaired:
             Alert(
@@ -112,6 +115,7 @@ struct OnboardingWatchCheckView: View {
         alertType: .noWatch,
         showAlert: $showAlert,
         onHasWatch: {},
-        onNoWatch: { showAlert = true }
+        onNoWatch: { showAlert = true },
+        onContinueWithoutWatch: { showAlert = false }
     )
 }

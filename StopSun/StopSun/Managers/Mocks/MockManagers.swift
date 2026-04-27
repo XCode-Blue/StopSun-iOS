@@ -53,7 +53,7 @@ final class MockLocationManager: LocationManagerProtocol {
     
     var isAuthorized: Bool { true }
     var isDenied: Bool { false }
-
+    
     func requestAuthorization() async {}
     
     func getCurrentLocation() async throws -> LocationInfo {
@@ -76,7 +76,7 @@ final class MockLocalStorageManager: LocalStorageManagerProtocol {
     private var firstLaunchChecked: Bool = false
     
     // MARK: - UserProfile
-
+    
     func loadUserProfile() -> UserProfile? { userProfile }
     func loadUserProfileOrDefault() -> UserProfile { userProfile ?? .defaultUser }
     func saveUserProfile(_ profile: UserProfile) { userProfile = profile }
@@ -85,6 +85,9 @@ final class MockLocalStorageManager: LocalStorageManagerProtocol {
     }
     func updateSunscreenSPF(_ spfLevel: SPFLevel) {
         userProfile?.spfLevel = spfLevel
+    }
+    func updateHasWatch(_ isPaired: Bool) {
+        userProfile?.hasWatch = isPaired
     }
     func deleteUserProfile() { userProfile = nil }
     func hasUserProfile() -> Bool { userProfile != nil }
@@ -127,6 +130,21 @@ final class MockLocalStorageManager: LocalStorageManagerProtocol {
         sunscreenHistory.append(application)
     }
     func deleteSunscreen() { sunscreenHistory.removeAll() }
+    
+    private var manualSunscreenStopTime: Date?
+    
+    func saveManualSunscreenStopTime(_ date: Date) {
+        manualSunscreenStopTime = date
+    }
+    
+    func loadManualSunscreenStopTime() -> Date? {
+        return manualSunscreenStopTime
+    }
+    
+    func clearManualSunscreenStopTime() {
+        manualSunscreenStopTime = nil
+    }
+    
     func isSunscreenActive() -> Bool {
         guard let current = sunscreenHistory.last else { return false }
         return current.isActive(at: Date())
@@ -231,51 +249,51 @@ final class MockNotificationManager: NotificationManagerProtocol {
 // MARK: - MockWatchConnectivityManager
 
 final class MockWatchConnectivityManager: WatchConnectivityManagerProtocol {
-
+    
     var _isPaired: Bool = true
-
+    
     var isPaired: Bool { _isPaired }
     var isReachable: Bool { false }
-
+    
     var onMessageReceived: (([String: Any]) -> Void)?
     var onUserInfoReceived: (([String: Any]) -> Void)?
-
+    
     func activate() {}
     func activateAndWait() async {}
     func sendUserProfile(_ profile: UserProfile) {}
     func sendSunscreenApplication(_ application: SunscreenApplication) {}
     func sendMEDStatus(totalSED: Double, maxMED: Double) {}
-
+    
     func sendMessage(
         _ message: [String: Any],
         replyHandler: (([String: Any]) -> Void)?,
         errorHandler: ((Error) -> Void)?
     ) {}
-
+    
     func transferUserInfo(_ userInfo: [String: Any]) {}
     func updateApplicationContext(_ context: [String: Any]) throws {}
 }
 
 @MainActor
 final class MockLiveActivityManager: LiveActivityManagerProtocol {
-
+    
     // MARK: - Properties
-
+    
     var isActivityActive: Bool { _isActivityActive }
-
+    
     private(set) var _isActivityActive = false
     private(set) var lastWarningLevel: WarningLevel?
     private(set) var lastProgress: Double?
     private(set) var lastAppliedAt: Date?
     private(set) var lastReapplyAt: Date?
     private(set) var lastSpfTitle: String?
-
+    
     private(set) var startCallCount = 0
     private(set) var updateCallCount = 0
     private(set) var endCallCount = 0
-
+    
     // MARK: - Methods
-
+    
     func startActivity(
         appliedAt: Date,
         reapplyAt: Date,
@@ -291,21 +309,21 @@ final class MockLiveActivityManager: LiveActivityManagerProtocol {
         lastProgress = progress
         startCallCount += 1
     }
-
+    
     func updateWarningLevel(_ warningLevel: WarningLevel, progress: Double) {
         lastWarningLevel = warningLevel
         lastProgress = progress
         updateCallCount += 1
     }
-
+    
     func endActivity() {
         _isActivityActive = false
         lastWarningLevel = nil
         endCallCount += 1
     }
-
+    
     // MARK: - Test Helper
-
+    
     /// 테스트 시작 전 상태를 초기화하고 싶을 때 사용
     func resetMock() {
         _isActivityActive = false

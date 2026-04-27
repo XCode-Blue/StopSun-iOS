@@ -24,8 +24,8 @@ import SwiftUI
 /// 완료
 /// ```
 ///
-/// ## Apple Watch 필수
-/// Watch 미보유 시 진행이 차단됩니다.
+/// ## Apple Watch 선택
+/// Watch 미보유 시에도 안내 후 다음 단계로 진행 가능합니다.
 @MainActor
 @Observable
 final class OnboardingViewModel {
@@ -46,6 +46,7 @@ final class OnboardingViewModel {
     // MARK: - State
     
     var selectedSkinType: SkinType? = nil
+    var hasWatch: Bool = true
     var isRequesting: Bool = false
     var isCompleted: Bool = false
     
@@ -182,6 +183,13 @@ final class OnboardingViewModel {
         watchAlertType = .noWatch
         showWatchAlert = true
     }
+
+    /// Watch 미보유 Alert에서 "확인" 탭 시 호출
+    func continueWithoutWatch() {
+        hasWatch = false
+        showWatchAlert = false
+        moveToNextSetupStep()
+    }
     
     // MARK: - Step 2: Permission Request
     
@@ -245,8 +253,8 @@ final class OnboardingViewModel {
     
     func completeOnboarding() {
         guard let skinType = selectedSkinType else { return }
-        
-        let profile = UserProfile(skinType: skinType, spfLevel: .spf30)
+
+        let profile = UserProfile(skinType: skinType, spfLevel: .spf30, hasWatch: hasWatch)
         localStorage.saveUserProfile(profile)
         localStorage.saveOnboardingCompleted(true)
         

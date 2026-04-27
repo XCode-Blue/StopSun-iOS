@@ -184,7 +184,9 @@ struct DashboardView: View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
             SunscreenTimerCardView(
                 remainingTime: viewModel.timerRemaining(at: context.date),
-                isTimerActive: viewModel.isTimerActive
+                isTimerActive: viewModel.isTimerActive,
+                onStart: { viewModel.applySunscreen() },
+                onStop: { viewModel.stopSunscreen() }
             )
         }
     }

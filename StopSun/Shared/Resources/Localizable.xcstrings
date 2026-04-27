@@ -2778,6 +2778,183 @@
         }
       }
     },
+    "settings.daylight.title" : {
+      "comment" : "설정 - 일광 시간 기록 타이틀",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time in Daylight"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일광 시간 기록"
+          }
+        }
+      }
+    },
+    "settings.daylight.desc" : {
+      "comment" : "설정 - 일광 시간 기록 설명",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record your time in daylight in the Health app."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "건강 앱에서 오늘의 일광 시간을 기록해요."
+          }
+        }
+      }
+    },
+    "settings.daylight.open" : {
+      "comment" : "설정 - 일광 시간 건강앱 열기 버튼",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "건강"
+          }
+        }
+      }
+    },
+    "settings.watch.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Apple Watch Connection" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "애플 워치 연동 확인" } }
+      }
+    },
+    "settings.watch.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Check and save your Apple Watch connection status." } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "애플 워치와의 연동 상태를 확인하고 저장해요." } }
+      }
+    },
+    "settings.watch.check" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Check" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "확인" } }
+      }
+    },
+    "settings.watch.alert.alreadyConnected.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already Connected"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이미 연결되어 있어요"
+          }
+        }
+      }
+    },
+    "settings.watch.alert.alreadyConnected.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your Apple Watch is already connected."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "애플 워치가 정상적으로 연동되어 있어요."
+          }
+        }
+      }
+    },
+    "settings.watch.alert.connected.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연결됐어요"
+          }
+        }
+      }
+    },
+    "settings.watch.alert.connected.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Watch connection confirmed.\nUV data will now be received from your Watch."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "애플 워치 연동이 확인됐어요.\n자외선 데이터를 워치에서 받아올 수 있어요."
+          }
+        }
+      }
+    },
+    "settings.watch.alert.notPaired.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Watch Not Connected"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "워치가 연결되지 않았어요"
+          }
+        }
+      }
+    },
+    "settings.watch.alert.notPaired.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No paired Apple Watch found.\nPlease check your Watch connection."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "페어링된 애플 워치를 찾지 못했어요.\n워치 연결 상태를 확인해주세요."
+          }
+        }
+      }
+    },
     "settings.title" : {
       "comment" : "설정 화면 타이틀",
       "extractionState" : "manual",
@@ -3241,6 +3418,27 @@
             "value" : "선크림 타이머를\n워치에서 작동시켜주세요"
           }
         }
+      }
+    },
+    "sunscreen.card.inactive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Time to apply sunscreen" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "선크림을 다시 바를 수 있도록 알려줄게요" } }
+      }
+    },
+    "sunscreen.card.start" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Apply Sunscreen" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "선크림 모드 시작" } }
+      }
+    },
+    "sunscreen.card.stop" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Stop Timer" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "선크림 모드 종료" } }
       }
     },
     "sunscreen.effectiveness.excellent" : {

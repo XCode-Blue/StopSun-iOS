@@ -17,17 +17,27 @@ import Foundation
 @Observable
 final class DashboardViewModel {
     // MARK: - View State
-    
+
     var currentPage: Int = 0
+
+    /// Watch 미보유 시 MED 자동 추적 불가 → 선크림 타이머 중심 UI
+    var hasWatch: Bool {
+        syncCoordinator.userProfile?.hasWatch ?? true
+    }
+    
+    /// Watch 미보유 시 MED 자동 추적 불가 → 선크림 타이머 중심 UI
+    var hasWatch: Bool {
+        syncCoordinator.userProfile?.hasWatch ?? true
+    }
     
     /// 캐싱된 날짜 문자열 (하루에 한 번만 갱신)
     private(set) var formattedDate: String = ""
     private(set) var weeklyChartItems: [WeeklyBarItem] = []
-
+    
     // MARK: - Private Cache State
-
+    
     private var lastBuiltDate: Date?
-
+    
     // MARK: - Dependencies
     
     private let syncCoordinator: SyncCoordinator
@@ -67,82 +77,103 @@ final class DashboardViewModel {
     var warningLevel: WarningLevel {
         syncCoordinator.warningLevel
     }
-
+    
     /// SyncCoordinator 에러 (ErrorHandler 연결용)
     var syncError: AppError? {
         syncCoordinator.error
     }
-
+    
     // MARK: - Weather Data
-
+    
     var uvIndex: Int {
         Int(syncCoordinator.currentWeather?.currentUVIndex ?? 0)
     }
-
+    
     var temperature: Double {
         syncCoordinator.currentWeather?.currentTemperature ?? 0
     }
-
+    
     var locationName: String {
         syncCoordinator.currentWeather?.location.cityName ?? "—"
     }
-
+    
     // MARK: - Sunscreen Timer
-
+    
     var isTimerActive: Bool {
         guard let sunscreen = syncCoordinator.activeSunscreen else { return false }
         return sunscreen.isActive(at: Date())
     }
-
+    
     func timerRemaining(at now: Date) -> String {
         guard let sunscreen = syncCoordinator.activeSunscreen,
               sunscreen.isActive(at: now)
         else {
             return "00:00"
         }
-
+        
         let remaining = sunscreen.nextReapplyTime.timeIntervalSince(now)
         guard remaining > 0 else { return "00:00" }
-
+        
         let hours = Int(remaining) / 3600
         let minutes = (Int(remaining) % 3600) / 60
         let seconds = Int(remaining) % 60
-
+        
         if hours > 0 {
             return String(format: "%d:%02d:%02d", hours, minutes, seconds)
         } else {
             return String(format: "%02d:%02d", minutes, seconds)
         }
     }
-
+    
     // MARK: - Actions
-
+    
     func onAppear() async {
         formattedDate = Date().toDayWithWeekdayString
+        
+        // Watch 미보유 시 선크림 타이머 카드를 기본으로
+        if !hasWatch && currentPage == 0 {
+            currentPage = 1
+        }
+      
         refreshWeeklyChartItemsIfNeeded()
-
+        
         guard let lastSync = syncCoordinator.lastSyncTime else {
             await syncCoordinator.startSync()
             refreshWeeklyChartItems()
             return
         }
-
+        
         if Date().timeIntervalSince(lastSync) > resyncInterval {
             await syncCoordinator.startSync()
             refreshWeeklyChartItems()
         }
     }
-
+    
     func pullToRefresh() async {
         await syncCoordinator.refresh()
         refreshWeeklyChartItems()
     }
-
+    
+    // MARK: - Sunscreen Timer Actions
+    
+    /// 저장된 SPF로 선크림 타이머 시작
+    func applySunscreen() {
+        let spf = syncCoordinator.userProfile?.spfLevel ?? .spf30
+        syncCoordinator.applySunscreen(spf: spf)
+        Log.info("Dashboard: 선크림 도포 (SPF \(spf.displayTitle))")
+    }
+    
+    /// 선크림 타이머 종료
+    func stopSunscreen() {
+        syncCoordinator.stopSunscreen()
+        Log.info("Dashboard: 선크림 타이머 종료")
+    }
+    
     // MARK: - Weekly Chart
-
+    
     private func refreshWeeklyChartItemsIfNeeded() {
         let today = Calendar.current.startOfDay(for: Date())
-
+        
         guard let lastBuilt = lastBuiltDate,
               Calendar.current.isDate(lastBuilt, inSameDayAs: today)
         else {
@@ -150,26 +181,26 @@ final class DashboardViewModel {
             refreshWeeklyChartItems()
             return
         }
-
+        
         // 같은 날이면 오늘 항목만 업데이트
         updateTodayItem()
     }
-
+    
     private func refreshWeeklyChartItems() {
         weeklyChartItems = buildWeeklyChartItems()
         lastBuiltDate = Calendar.current.startOfDay(for: Date())
     }
-
+    
     private func updateTodayItem() {
         guard !weeklyChartItems.isEmpty,
               let skinType = syncCoordinator.userProfile?.skinType
         else { return }
-
+        
         let maxSED = skinType.maxDailyMEDinSED
         let percent = maxSED > 0 ? (syncCoordinator.todayTotalSED / maxSED) * 100 : 0
         let today = Calendar.current.startOfDay(for: Date())
         let minutes = localStorage.loadDailyMEDRecord(for: today)?.totalExposureMinutes ?? 0
-
+        
         weeklyChartItems[6] = WeeklyBarItem(
             dayLabel: weeklyChartItems[6].dayLabel,
             percent: percent,
@@ -177,17 +208,17 @@ final class DashboardViewModel {
             isToday: true
         )
     }
-
+    
     private func buildWeeklyChartItems() -> [WeeklyBarItem] {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-
+        
         let isEnglish = Locale.current.language.languageCode?.identifier == "en"
         let daySymbols = isEnglish
-            ? ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
-            : ["일", "월", "화", "수", "목", "금", "토"]
+        ? ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
+        : ["일", "월", "화", "수", "목", "금", "토"]
         let todayLabel = isEnglish ? "TODAY" : "오늘"
-
+        
         guard let skinType = syncCoordinator.userProfile?.skinType else {
             return (0..<7).map { offset in
                 let date = calendar.date(byAdding: .day, value: offset - 6, to: today)!
@@ -200,35 +231,35 @@ final class DashboardViewModel {
                 )
             }
         }
-
+        
         let maxSED = skinType.maxDailyMEDinSED
-
+        
         return (0..<7).map { offset in
             let date = calendar.date(byAdding: .day, value: offset - 6, to: today)!
             let weekday = calendar.component(.weekday, from: date) - 1
             let isToday = offset == 6
             let label = isToday ? todayLabel : daySymbols[weekday]
-
+            
             if isToday {
                 let percent = maxSED > 0 ? (syncCoordinator.todayTotalSED / maxSED) * 100 : 0
                 let minutes = localStorage.loadDailyMEDRecord(for: date)?.totalExposureMinutes ?? 0
                 return WeeklyBarItem(dayLabel: label, percent: percent, exposureMinutes: minutes, isToday: true)
             }
-
+            
             if let record = localStorage.loadDailyMEDRecord(for: date) {
                 let percent = maxSED > 0 ? (record.totalSED / maxSED) * 100 : 0
                 return WeeklyBarItem(dayLabel: label, percent: percent, exposureMinutes: record.totalExposureMinutes, isToday: false)
             }
-
+            
             return WeeklyBarItem(dayLabel: label, percent: 0, exposureMinutes: 0, isToday: false)
         }
     }
-
+    
     // MARK: - Debug
     
-    #if DEBUG
-        var debugSyncCoordinator: SyncCoordinator {
-            syncCoordinator
-        }
-    #endif
+#if DEBUG
+    var debugSyncCoordinator: SyncCoordinator {
+        syncCoordinator
+    }
+#endif
 }
