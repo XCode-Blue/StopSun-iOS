@@ -308,6 +308,7 @@ enum L10n {
             static var authorizationDenied: String { .localized("error.healthKit.authorizationDenied") }
             static var dataFetchFailed: String { .localized("error.healthKit.dataFetchFailed") }
             static var backgroundDeliveryFailed: String { .localized("error.healthKit.backgroundDeliveryFailed") }
+            static var saveFailed: String { .localized("error.healthKit.saveFailed") }
         }
         
         /// 위치 에러
@@ -459,7 +460,7 @@ enum L10n {
         enum Daylight {
             static var title: String { .localized("settings.daylight.title") }
             static var desc: String { .localized("settings.daylight.desc") }
-            static var open: String { .localized("settings.daylight.open") }
+            static var record: String { .localized("settings.daylight.record") }
         }
         
         enum WatchSetting {
@@ -480,6 +481,42 @@ enum L10n {
         enum AppInfo {
             static var privacy: String { .localized("settings.appInfo.privacy") }
             static var support: String { .localized("settings.appInfo.support") }
+        }
+    }
+    
+    // MARK: - DaylightRecord
+    
+    enum DaylightRecord {
+        static var navTitle: String         { .localized("daylightRecord.navTitle") }
+        static var heading: String          { .localized("daylightRecord.heading") }
+        static var subtitle: String         { .localized("daylightRecord.subtitle") }
+        static var selectDate: String       { .localized("daylightRecord.selectDate") }
+        static var today: String            { .localized("daylightRecord.today") }
+        static var sectionNewEntry: String  { .localized("daylightRecord.section.newEntry") }
+        static var sectionSunscreen: String { .localized("daylightRecord.section.sunscreen") }
+        static var emptyRecords: String     { .localized("daylightRecord.emptyRecords") }
+        static var startTime: String        { .localized("daylightRecord.startTime") }
+        static var endTime: String          { .localized("daylightRecord.endTime") }
+        static var unitHour: String         { .localized("daylightRecord.unitHour") }
+        static var unitMinute: String       { .localized("daylightRecord.unitMinute") }
+        static var sunscreenToggleTitle: String { .localized("daylightRecord.sunscreen.toggle.title") }
+        static var sunscreenToggleDesc: String  { .localized("daylightRecord.sunscreen.toggle.desc") }
+        static var sunscreenSPFTitle: String    { .localized("daylightRecord.sunscreen.spf.title") }
+        static var save: String             { .localized("daylightRecord.save") }
+        static var successTitle: String     { .localized("daylightRecord.success.title") }
+        static var successMessage: String   { .localized("daylightRecord.success.message") }
+        static var saveFailed: String       { .localized("daylightRecord.saveFailed") }
+        static var loadFailed: String       { .localized("daylightRecord.loadFailed") }
+        static var overlapAlertTitle: String { .localized("daylightRecord.overlap.title") }
+        
+        /// 날짜 제목이 포함된 "OO 기록" 섹션 레이블
+        static func sectionExisting(_ dateTitle: String) -> String {
+            String(format: .localized("daylightRecord.section.existing"), dateTitle)
+        }
+        
+        /// 중복 기록 시간대를 포함한 Alert 메시지
+        static func overlapAlertMessage(_ summary: String) -> String {
+            String(format: .localized("daylightRecord.overlap.message"), summary)
         }
     }
     

@@ -122,6 +122,48 @@ final class MockSyncCoordinator: SyncCoordinatorProtocol {
         userProfile?.spfLevel = spfLevel
     }
     
+    func requestHealthKitWriteAuthorization() async throws {}
+    
+    func recordDaylightExposure(start: Date, end: Date, sunscreenSPF: SPFLevel?) async throws {
+        if let spf = sunscreenSPF {
+            let application = SunscreenApplication(
+                spfLevel: spf,
+                appliedAt: start,
+                reapplyIntervalMinutes: spf.recommendedReapplicationMinutes
+            )
+            activeSunscreen = application
+            sunscreenHistory.append(application)
+        }
+        
+        let sed = SEDCalculator.calculateWithSunscreenHistory(
+            start: start,
+            end: end,
+            uvIndex: currentUVIndex > 0 ? currentUVIndex : 3.0,
+            sunscreenHistory: sunscreenHistory
+        )
+        todayTotalSED += sed
+        
+        let minutes = Int(end.timeIntervalSince(start) / 60)
+        Log.debug("Mock 일광 기록: \(minutes)분, SPF: \(sunscreenSPF?.displayTitle ?? "없음"), SED +\(String(format: "%.3f", sed))")
+    }
+    
+    func fetchDaylightRecords(for date: Date) async throws -> [TimeInDaylight] {
+        // Mock: 오늘 날짜면 샘플 데이터 반환, 과거 날짜면 빈 배열
+        guard Calendar.current.isDateInToday(date) else { return [] }
+        
+        let now = Date()
+        return [
+            TimeInDaylight(
+                startTime: Calendar.current.date(byAdding: .hour, value: -3, to: now) ?? now,
+                endTime: Calendar.current.date(byAdding: .hour, value: -2, to: now) ?? now
+            ),
+            TimeInDaylight(
+                startTime: Calendar.current.date(byAdding: .minute, value: -90, to: now) ?? now,
+                endTime: Calendar.current.date(byAdding: .minute, value: -30, to: now) ?? now
+            )
+        ]
+    }
+    
     func checkAndUpdateWatchConnection() async {
         userProfile?.hasWatch = true
         Log.debug("Mock Watch 연동 확인 — 연결됨")

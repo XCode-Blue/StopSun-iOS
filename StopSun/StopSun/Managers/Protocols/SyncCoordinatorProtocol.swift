@@ -49,7 +49,7 @@ protocol SyncCoordinatorProtocol {
     // MARK: - Sync
     
     /// 동기화 시작
-    /// 
+    ///
     /// 앱 시작 시 호출. 권한 확인 후 데이터 로드
     /// - Note: 권한 요청은 온보딩/PermissionManager가 담당
     func startSync() async
@@ -84,4 +84,29 @@ protocol SyncCoordinatorProtocol {
     /// 온보딩과 동일하게 `activateAndWait()` 후 `isPaired`를 체크하고
     /// 결과를 `UserProfile.hasWatch`에 반영합니다.
     func checkAndUpdateWatchConnection() async
+    
+    /// HealthKit 쓰기 권한 요청
+    func requestHealthKitWriteAuthorization() async throws
+    
+    /// 일광 노출 시간 직접 기록 및 SED 즉시 재계산
+    ///
+    /// 1. 선크림을 발랐다면 `SunscreenApplication(appliedAt: start)` 저장
+    ///    → `SEDCalculator.calculateWithSunscreenHistory`가 SPF 구간 분할 계산에 반영
+    /// 2. HealthKit에 TimeInDaylight 샘플 저장
+    /// 3. `refresh()`로 SED 즉시 재계산
+    ///
+    /// - Parameters:
+    ///   - start: 일광 노출 시작 시각
+    ///   - end: 일광 노출 종료 시각
+    ///   - sunscreenSPF: 도포한 SPF (없으면 nil)
+    func recordDaylightExposure(start: Date, end: Date, sunscreenSPF: SPFLevel?) async throws
+    
+    /// 특정 날짜의 일광 노출 기록 조회
+    ///
+    /// HealthKit에서 해당 날짜 00:00 ~ 23:59:59 범위의
+    /// TimeInDaylight 샘플을 조회합니다.
+    ///
+    /// - Parameter date: 조회할 날짜
+    /// - Returns: 해당 날짜의 TimeInDaylight 배열 (시작 시각 오름차순)
+    func fetchDaylightRecords(for date: Date) async throws -> [TimeInDaylight]
 }

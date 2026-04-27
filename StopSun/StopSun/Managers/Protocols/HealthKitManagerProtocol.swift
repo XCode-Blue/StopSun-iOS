@@ -45,4 +45,18 @@ protocol HealthKitManagerProtocol {
     ///
     /// 새로운 timeInDaylight 데이터가 기록되면 앱에 알림
     func enableBackgroundDelivery() async throws
+    
+    /// TimeInDaylight 쓰기 권한 요청
+    ///
+    /// 기존 읽기 권한과 함께 쓰기 권한을 요청합니다.
+    /// 이미 허용된 경우 시스템이 팝업 없이 처리합니다.
+    func requestWriteAuthorization() async throws
+    
+    /// TimeInDaylight 샘플 저장
+    ///
+    /// - Parameters:
+    ///   - start: 일광 노출 시작 시각
+    ///   - end: 일광 노출 종료 시각
+    /// - Throws: `AppError.healthKit(.saveFailed)`
+    func saveTimeInDaylight(start: Date, end: Date) async throws
 }

@@ -25,6 +25,10 @@ final class MockHealthKitManager: HealthKitManagerProtocol {
     }
     
     func enableBackgroundDelivery() async throws {}
+    
+    func requestWriteAuthorization() async throws {}
+    
+    func saveTimeInDaylight(start: Date, end: Date) async throws {}
 }
 
 // MARK: - MockWeatherManager

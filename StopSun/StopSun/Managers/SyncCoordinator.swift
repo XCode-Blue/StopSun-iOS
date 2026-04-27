@@ -178,11 +178,6 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
         
         Log.info("동기화 시작")
         
-        // 0. Watch Connectivity 세션 활성화 (Watch 보유 시에만)
-        if userProfile?.hasWatch != false {
-            watchConnectivity.activate()
-        }
-        
         // 1. 프로필 로드
         loadUserProfile()
 
@@ -347,6 +342,43 @@ final class SyncCoordinator: SyncCoordinatorProtocol {
         }
         
         Log.info("선호 SPF 변경: \(spfLevel.displayTitle)")
+    }
+    
+    func requestHealthKitWriteAuthorization() async throws {
+        try await healthKit.requestWriteAuthorization()
+    }
+    
+    func recordDaylightExposure(start: Date, end: Date, sunscreenSPF: SPFLevel?) async throws {
+        // 1. 선크림 기록 (SPF가 있을 때만)
+        //    appliedAt = start 로 저장해야 SEDCalculator가 해당 구간 전체에 SPF를 적용합니다.
+        if let spf = sunscreenSPF {
+            let application = SunscreenApplication(
+                spfLevel: spf,
+                appliedAt: start,
+                reapplyIntervalMinutes: spf.recommendedReapplicationMinutes
+            )
+            localStorage.saveSunscreenApplication(application)
+            localStorage.clearManualSunscreenStopTime()
+            activeSunscreen = application
+            Log.info("수동 선크림 기록: SPF \(spf.displayTitle) at \(start.formatted(date: .omitted, time: .shortened))")
+        }
+        
+        // 2. HealthKit TimeInDaylight 저장
+        try await healthKit.saveTimeInDaylight(start: start, end: end)
+        
+        // 3. SED 즉시 재계산
+        Log.info("일광 노출 기록 완료 — SED 재계산 시작")
+        await refresh()
+    }
+    
+    func fetchDaylightRecords(for date: Date) async throws -> [TimeInDaylight] {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: date)
+        // 오늘이면 현재 시각까지만, 과거 날짜면 해당 날 23:59:59까지
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: start) ?? start
+        let end = min(endOfDay, Date())
+        
+        return try await healthKit.fetchTimeInDaylight(from: start, to: end)
     }
     
     func checkAndUpdateWatchConnection() async {
